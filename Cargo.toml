@@ -1,0 +1,22 @@
+[package]
+name = "vkclient"
+version = "1.0.0"
+edition = "2021"
+description = "Vk Api client implementation"
+documentation = "https://docs.rs/vkclient"
+readme = "Readme.md"
+license = "MIT OR Apache-2.0"
+keywords = ["client", "api", "vk", "vkontakte", "vk-api"]
+categories = ["api-bindings"]
+authors = ["Mnwa <mikhail@panfilov.tech>"]
+repository = "https://github.com/Mnwa/vkclient"
+
+[dependencies]
+
+[dependencies.serde]
+version = "1"
+features = ["derive"]
+
+[dependencies.awc]
+version = "3"
+features = ["rustls"]
