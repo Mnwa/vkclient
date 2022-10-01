@@ -19,13 +19,13 @@ impl VkApi {
     /// let client = VkApi::from_access_token("XXX");
     /// ```
     pub fn from_access_token<S: Into<String>>(service_token: S) -> Self {
-        Self::new("vk.com", "5.131", service_token)
+        Self::new("api.vk.com", "5.131", service_token)
     }
 
     /// Create client with all needed meta data
     /// ```rust
     /// use vkclient::VkApi;
-    /// let client = VkApi::new("vk.com", "5.131", "XXX");
+    /// let client = VkApi::new("api.vk.com", "5.131", "XXX");
     /// ```
     pub fn new<D: Into<String>, V: Into<String>, A: Into<String>>(
         domain: D,
