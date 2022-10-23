@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::time::Instant;
 use vkclient::{Encoding, Format, VkApi, VkApiError};
 
 fn main() {
@@ -10,12 +11,41 @@ fn main() {
         .unwrap();
 
     runtime.block_on(async move {
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token)
+        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+            .with_format(Format::Json)
+            .with_encoding(Encoding::Gzip)
+            .into();
+
+        let i = Instant::now();
+        assert!(get_users_info(&client).await.is_ok());
+        println!("json+gzip {} micros", i.elapsed().as_micros());
+
+        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
             .with_format(Format::Msgpack)
             .with_encoding(Encoding::Zstd)
             .into();
 
-        println!("{:#?}", get_users_info(&client).await)
+        let i = Instant::now();
+        assert!(get_users_info(&client).await.is_ok());
+        println!("msgpack+zstd {} micros", i.elapsed().as_micros());
+
+        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+            .with_format(Format::Json)
+            .with_encoding(Encoding::Zstd)
+            .into();
+
+        let i = Instant::now();
+        assert!(get_users_info(&client).await.is_ok());
+        println!("json+zstd {} micros", i.elapsed().as_micros());
+
+        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+            .with_format(Format::Msgpack)
+            .with_encoding(Encoding::Gzip)
+            .into();
+
+        let i = Instant::now();
+        assert!(get_users_info(&client).await.is_ok());
+        println!("msgpack+gzip {} micros", i.elapsed().as_micros());
     });
 }
 async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
