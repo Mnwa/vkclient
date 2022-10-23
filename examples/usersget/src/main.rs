@@ -46,6 +46,24 @@ fn main() {
         let i = Instant::now();
         assert!(get_users_info(&client).await.is_ok());
         println!("msgpack+gzip {} micros", i.elapsed().as_micros());
+
+        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+            .with_format(Format::Json)
+            .with_encoding(Encoding::None)
+            .into();
+
+        let i = Instant::now();
+        assert!(get_users_info(&client).await.is_ok());
+        println!("json+none {} micros", i.elapsed().as_micros());
+
+        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+            .with_format(Format::Msgpack)
+            .with_encoding(Encoding::None)
+            .into();
+
+        let i = Instant::now();
+        assert!(get_users_info(&client).await.is_ok());
+        println!("msgpack+none {} micros", i.elapsed().as_micros());
     });
 }
 async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
