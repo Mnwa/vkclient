@@ -77,7 +77,7 @@ impl VkApi {
         M: AsRef<str>,
     {
         #[cfg(feature = "encode_msgpack")]
-        let url = if matches!(self.inner.format, Format::Msgpack) {
+        let url = if matches!(self.inner.format, Encoding::Msgpack) {
             format!(
                 "https://{}/method/{}.msgpack",
                 self.inner.domain,
@@ -170,7 +170,7 @@ impl Display for ResponseDeserialize {
             #[cfg(feature = "encode_msgpack")]
             ResponseDeserialize::MsgPack(e) => Display::fmt(e, f),
             ResponseDeserialize::BadEncoding => {
-                write!(f, "vk api bad encoding returned")
+                write!(f, "vk api bad encoding or compression returned")
             }
         }
     }
@@ -211,7 +211,7 @@ struct VkApiBody<'a, T> {
 impl Error for VkError {}
 
 #[derive(Clone, Copy, Debug)]
-pub enum Encoding {
+pub enum Compression {
     #[cfg(feature = "compression_zstd")]
     Zstd,
     #[cfg(feature = "compression_gzip")]
@@ -220,7 +220,7 @@ pub enum Encoding {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum Format {
+pub enum Encoding {
     #[cfg(feature = "encode_msgpack")]
     Msgpack,
     #[cfg(feature = "encode_json")]

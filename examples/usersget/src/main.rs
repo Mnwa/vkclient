@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
-use vkclient::{Encoding, Format, VkApi, VkApiError};
+use vkclient::{Compression, Encoding, VkApi, VkApiError};
 
 fn main() {
     let access_token = std::env::var("SERVICE_TOKEN").unwrap();
@@ -12,8 +12,8 @@ fn main() {
 
     runtime.block_on(async move {
         let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
-            .with_format(Format::Json)
-            .with_encoding(Encoding::Gzip)
+            .with_encoding(Encoding::Json)
+            .with_compression(Compression::Gzip)
             .into();
 
         let i = Instant::now();
@@ -21,8 +21,8 @@ fn main() {
         println!("json+gzip {} micros", i.elapsed().as_micros());
 
         let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
-            .with_format(Format::Msgpack)
-            .with_encoding(Encoding::Zstd)
+            .with_encoding(Encoding::Msgpack)
+            .with_compression(Compression::Zstd)
             .into();
 
         let i = Instant::now();
@@ -30,8 +30,8 @@ fn main() {
         println!("msgpack+zstd {} micros", i.elapsed().as_micros());
 
         let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
-            .with_format(Format::Json)
-            .with_encoding(Encoding::Zstd)
+            .with_encoding(Encoding::Json)
+            .with_compression(Compression::Zstd)
             .into();
 
         let i = Instant::now();
@@ -39,8 +39,8 @@ fn main() {
         println!("json+zstd {} micros", i.elapsed().as_micros());
 
         let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
-            .with_format(Format::Msgpack)
-            .with_encoding(Encoding::Gzip)
+            .with_encoding(Encoding::Msgpack)
+            .with_compression(Compression::Gzip)
             .into();
 
         let i = Instant::now();
@@ -48,8 +48,8 @@ fn main() {
         println!("msgpack+gzip {} micros", i.elapsed().as_micros());
 
         let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
-            .with_format(Format::Json)
-            .with_encoding(Encoding::None)
+            .with_encoding(Encoding::Json)
+            .with_compression(Compression::None)
             .into();
 
         let i = Instant::now();
@@ -57,8 +57,8 @@ fn main() {
         println!("json+none {} micros", i.elapsed().as_micros());
 
         let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
-            .with_format(Format::Msgpack)
-            .with_encoding(Encoding::None)
+            .with_encoding(Encoding::Msgpack)
+            .with_compression(Compression::None)
             .into();
 
         let i = Instant::now();

@@ -1,5 +1,5 @@
 use crate::inner::VkApiInner;
-use crate::{Encoding, Format, VkApi};
+use crate::{Compression, Encoding, VkApi};
 
 /// API Client builder struct.
 /// Use `VkApi::from` or `into` to make `VkApi` struct.
@@ -13,20 +13,20 @@ impl VkApiBuilder {
     pub fn new(access_token: String) -> Self {
         cfg_if::cfg_if! {
             if #[cfg(features = "compression_zstd")] {
-                let encoding = Encoding::Zstd;
+                let encoding = Compression::Zstd;
             } else if #[cfg(features = "compression_gzip")] {
-                let encoding = Encoding::Gzip;
+                let encoding = Compression::Gzip;
             } else {
-                let encoding = Encoding::None;
+                let encoding = Compression::None;
             }
         }
         cfg_if::cfg_if! {
             if #[cfg(features = "encode_msgpack")] {
-                let format = Format::Msgpack;
+                let format = Encoding::Msgpack;
             } else if #[cfg(features = "encode_json")] {
-                let format = Format::Json;
+                let format = Encoding::Json;
             } else {
-                let format = Format::None;
+                let format = Encoding::None;
             }
         }
 
@@ -59,15 +59,15 @@ impl VkApiBuilder {
         self
     }
 
-    /// Pass new encoding to builder. Default is Encoding::Zstd
-    pub fn with_encoding(mut self, encoding: Encoding) -> Self {
-        self.inner.encoding = encoding;
+    /// Pass new compression to builder. Default is Compression::Zstd
+    pub fn with_compression(mut self, compression: Compression) -> Self {
+        self.inner.encoding = compression;
         self
     }
 
-    /// Pass new format to builder. Default is Format::Msgpack
-    pub fn with_format(mut self, format: Format) -> Self {
-        self.inner.format = format;
+    /// Pass new encoding to builder. Default is Encoding::Msgpack
+    pub fn with_encoding(mut self, encoding: Encoding) -> Self {
+        self.inner.format = encoding;
         self
     }
 }
