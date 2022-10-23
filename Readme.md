@@ -1,6 +1,7 @@
 # VK API Client
 
 This is a base pure rust implementation of VK API client.
+The client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
 
 See the [library documentation](https://docs.rs/vkclient) or [VK API documentation](https://dev.vk.com/reference) for more.
 
@@ -9,8 +10,33 @@ See the [library documentation](https://docs.rs/vkclient) or [VK API documentati
 use vkclient::VkApi;
 
 fn main() {
-    let client = VkApi::from_access_token("XXX");
-    
+    let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token).into();
     ..
+}
+```
+
+```rust
+use vkclient::{VkApi, VkApiError};
+use serde::{Deserialize, Serialize};
+
+async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
+    client.send_request("users.get", UsersGetRequest {
+        user_ids: "1,2",
+        fields: "id,sex",
+   }).await
+}
+
+#[derive(Serialize)]
+struct UsersGetRequest<'a> {
+    user_ids: &'a str,
+    fields: &'a str,
+}
+
+#[derive(Deserialize)]
+struct UsersGetResponse {
+    id: i64,
+    first_name: String,
+    last_name: String,
+    sex: u8,
 }
 ```
