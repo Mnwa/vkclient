@@ -1,4 +1,5 @@
 use crate::inner::VkApiInner;
+use crate::structs::Version;
 use hyper::body::Buf;
 use hyper::client::HttpConnector;
 use hyper::header::{CONTENT_ENCODING, CONTENT_TYPE};
@@ -41,20 +42,20 @@ impl VkApi {
 
     /// Send request to VK API. See list of [VK API methods](https://dev.vk.com/method).
     /// ```rust
-    /// use vkclient::{VkApi, VkApiError};
+    /// use vkclient::{VkApi, VkApiError, List};
     /// use serde::{Deserialize, Serialize};
     ///
     /// async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
     ///     client.send_request("users.get", UsersGetRequest {
-    ///         user_ids: "1,2",
-    ///         fields: "id,sex",
+    ///         user_ids: List(vec![1,2]),
+    ///         fields: List(vec!["id", "sex"]),
     ///    }).await
     /// }
     ///
     /// #[derive(Serialize)]
     /// struct UsersGetRequest<'a> {
-    ///     user_ids: &'a str,
-    ///     fields: &'a str,
+    ///     user_ids: List<Vec<usize>>,
+    ///     fields: List<Vec<&'a str>>,
     /// }
     ///
     /// #[derive(Deserialize)]
@@ -88,7 +89,7 @@ impl VkApi {
         let url = format!("https://{}/method/{}", self.inner.domain, method.as_ref());
 
         let body = serde_urlencoded::to_string(VkApiBody {
-            v: &self.inner.version,
+            v: self.inner.version,
             body,
         })
         .map_err(VkApiError::RequestSerialize)?;
@@ -198,9 +199,9 @@ impl Display for VkError {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct VkApiBody<'a, T> {
-    v: &'a str,
+#[derive(Debug, Clone, Serialize)]
+struct VkApiBody<T> {
+    v: Version,
     #[serde(flatten)]
     body: T,
 }

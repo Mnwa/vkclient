@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
-use vkclient::{Compression, Encoding, VkApi, VkApiError};
+use vkclient::{Compression, Encoding, List, VkApi, VkApiError};
 
 fn main() {
     let access_token = std::env::var("SERVICE_TOKEN").unwrap();
@@ -71,8 +71,8 @@ async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiEr
         .send_request(
             "users.get",
             UsersGetRequest {
-                user_ids: "1,2",
-                fields: "id,sex",
+                user_ids: List(vec![1, 2, 3]),
+                fields: List(vec!["id", "sex"]),
             },
         )
         .await
@@ -80,8 +80,8 @@ async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiEr
 
 #[derive(Serialize, Debug)]
 struct UsersGetRequest<'a> {
-    user_ids: &'a str,
-    fields: &'a str,
+    user_ids: List<Vec<usize>>,
+    fields: List<Vec<&'a str>>,
 }
 
 #[allow(dead_code)]

@@ -1,3 +1,4 @@
+use crate::structs::Version;
 use crate::vkapi::{Compression, Encoding};
 use hyper::header::{ACCEPT, ACCEPT_ENCODING, AUTHORIZATION, CONTENT_TYPE};
 use hyper::http::request::Builder;
@@ -8,7 +9,7 @@ pub(crate) struct VkApiInner {
     pub(crate) encoding: Compression,
     pub(crate) format: Encoding,
     pub(crate) access_token: String,
-    pub(crate) version: String,
+    pub(crate) version: Version,
     pub(crate) domain: String,
 }
 

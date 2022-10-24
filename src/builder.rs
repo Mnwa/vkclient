@@ -1,4 +1,5 @@
 use crate::inner::VkApiInner;
+use crate::structs::Version;
 use crate::vkapi::{Compression, Encoding, VkApi};
 
 /// API Client builder struct.
@@ -33,7 +34,7 @@ impl VkApiBuilder {
         Self {
             inner: VkApiInner {
                 access_token,
-                version: "5.131".to_string(),
+                version: Version::default(),
                 domain: "api.vk.com".to_string(),
                 format,
                 encoding,
@@ -48,7 +49,7 @@ impl VkApiBuilder {
     }
 
     /// Pass new version to builder. Default is 5.131
-    pub fn with_version(mut self, version: String) -> Self {
+    pub fn with_version(mut self, version: Version) -> Self {
         self.inner.version = version;
         self
     }
