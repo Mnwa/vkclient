@@ -1,7 +1,7 @@
-use crate::{Compression, Encoding, Request};
+use crate::vkapi::{Compression, Encoding};
 use hyper::header::{ACCEPT, ACCEPT_ENCODING, AUTHORIZATION, CONTENT_TYPE};
 use hyper::http::request::Builder;
-use hyper::Method;
+use hyper::{Method, Request};
 
 #[derive(Clone, Debug)]
 pub(crate) struct VkApiInner {

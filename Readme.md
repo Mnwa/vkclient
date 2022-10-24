@@ -10,7 +10,7 @@ See the [library documentation](https://docs.rs/vkclient) or [VK API documentati
 use vkclient::VkApi;
 
 fn main() {
-    let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token).into();
+    let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
     ..
 }
 ```

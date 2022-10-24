@@ -11,7 +11,7 @@ fn main() {
         .unwrap();
 
     runtime.block_on(async move {
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+        let client: VkApi = vkclient::VkApiBuilder::new(access_token.clone())
             .with_encoding(Encoding::Json)
             .with_compression(Compression::Gzip)
             .into();
@@ -20,7 +20,7 @@ fn main() {
         assert!(get_users_info(&client).await.is_ok());
         println!("json+gzip {} micros", i.elapsed().as_micros());
 
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+        let client: VkApi = vkclient::VkApiBuilder::new(access_token.clone())
             .with_encoding(Encoding::Msgpack)
             .with_compression(Compression::Zstd)
             .into();
@@ -29,7 +29,7 @@ fn main() {
         assert!(get_users_info(&client).await.is_ok());
         println!("msgpack+zstd {} micros", i.elapsed().as_micros());
 
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+        let client: VkApi = vkclient::VkApiBuilder::new(access_token.clone())
             .with_encoding(Encoding::Json)
             .with_compression(Compression::Zstd)
             .into();
@@ -38,7 +38,7 @@ fn main() {
         assert!(get_users_info(&client).await.is_ok());
         println!("json+zstd {} micros", i.elapsed().as_micros());
 
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+        let client: VkApi = vkclient::VkApiBuilder::new(access_token.clone())
             .with_encoding(Encoding::Msgpack)
             .with_compression(Compression::Gzip)
             .into();
@@ -47,7 +47,7 @@ fn main() {
         assert!(get_users_info(&client).await.is_ok());
         println!("msgpack+gzip {} micros", i.elapsed().as_micros());
 
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+        let client: VkApi = vkclient::VkApiBuilder::new(access_token.clone())
             .with_encoding(Encoding::Json)
             .with_compression(Compression::None)
             .into();
@@ -56,7 +56,7 @@ fn main() {
         assert!(get_users_info(&client).await.is_ok());
         println!("json+none {} micros", i.elapsed().as_micros());
 
-        let client: VkApi = vkclient::builder::VkApiBuilder::new(access_token.clone())
+        let client: VkApi = vkclient::VkApiBuilder::new(access_token.clone())
             .with_encoding(Encoding::Msgpack)
             .with_compression(Compression::None)
             .into();

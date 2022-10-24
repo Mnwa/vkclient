@@ -1,5 +1,5 @@
 use crate::inner::VkApiInner;
-use crate::{Compression, Encoding, VkApi};
+use crate::vkapi::{Compression, Encoding, VkApi};
 
 /// API Client builder struct.
 /// Use `VkApi::from` or `into` to make `VkApi` struct.
