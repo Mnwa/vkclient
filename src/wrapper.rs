@@ -51,5 +51,7 @@ pub trait VkApiWrapper {
     fn get_method_name() -> &'static str;
 
     /// API version that required for this method
-    fn get_version() -> Version;
+    fn get_version() -> Version {
+        Version::default()
+    }
 }
