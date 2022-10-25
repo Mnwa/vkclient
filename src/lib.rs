@@ -45,7 +45,9 @@ mod vkapi;
 
 #[cfg(feature = "uploader")]
 pub mod upload;
+mod wrapper;
 
 pub use builder::VkApiBuilder;
 pub use structs::*;
 pub use vkapi::*;
+pub use wrapper::VkApiWrapper;

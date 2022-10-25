@@ -1,5 +1,6 @@
 use crate::inner::VkApiInner;
 use crate::structs::Version;
+use crate::wrapper::VkApiWrapper;
 use hyper::body::Buf;
 use hyper::client::HttpConnector;
 use hyper::header::{CONTENT_ENCODING, CONTENT_TYPE};
@@ -68,6 +69,31 @@ impl VkApi {
         B: Serialize,
         M: AsRef<str>,
     {
+        self.send_request_with_version(method, body, self.inner.version)
+            .await
+    }
+
+    /// Send request to VK API struct that implement `VkApiWrapper` trait
+    pub async fn send_request_with_wrapper<W>(&self, wrapper: W) -> Result<W::Response, VkApiError>
+    where
+        W: VkApiWrapper + Serialize,
+    {
+        self.send_request_with_version(W::get_method_name(), wrapper, W::get_version())
+            .await
+    }
+
+    /// Send request to VK API with specific version.
+    pub async fn send_request_with_version<T, B, M>(
+        &self,
+        method: M,
+        body: B,
+        version: Version,
+    ) -> Result<T, VkApiError>
+    where
+        T: DeserializeOwned,
+        B: Serialize,
+        M: AsRef<str>,
+    {
         #[cfg(feature = "encode_msgpack")]
         let url = if matches!(self.inner.format, Encoding::Msgpack) {
             format!(
@@ -82,11 +108,8 @@ impl VkApi {
         #[cfg(not(feature = "encode_msgpack"))]
         let url = format!("https://{}/method/{}", self.inner.domain, method.as_ref());
 
-        let body = serde_urlencoded::to_string(VkApiBody {
-            v: self.inner.version,
-            body,
-        })
-        .map_err(VkApiError::RequestSerialize)?;
+        let body = serde_urlencoded::to_string(VkApiBody { v: version, body })
+            .map_err(VkApiError::RequestSerialize)?;
 
         let request = Builder::from(&self.inner)
             .uri(url)
