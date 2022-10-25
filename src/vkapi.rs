@@ -21,12 +21,6 @@ use std::io::Read;
 /// use vkclient::VkApi;
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 /// ```
-///
-/// ## Features
-/// * compression_zstd - enabled by default. Adds zstd compression support;
-/// * compression_gzip - enabled by default. Adds gzip compression support;
-/// * encode_json - enabled by default. Adds json encoding support;
-/// * encode_msgpack - enabled by default. Adds msgpack encoding support;
 #[derive(Debug, Clone)]
 pub struct VkApi {
     inner: VkApiInner,
