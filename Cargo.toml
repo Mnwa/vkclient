@@ -1,6 +1,6 @@
 [package]
 name = "vkclient"
-version = "3.0.0"
+version = "3.1.0"
 edition = "2021"
 description = "Vk Api client implementation"
 documentation = "https://docs.rs/vkclient"
@@ -12,12 +12,13 @@ authors = ["Mnwa <mikhail@panfilov.tech>"]
 repository = "https://github.com/Mnwa/vkclient"
 
 [features]
-default = ["compression_zstd", "compression_gzip", "encode_json", "encode_msgpack"]
+default = ["compression_zstd", "compression_gzip", "encode_json", "encode_msgpack", "uploader"]
 
 compression_zstd = ["zstd"]
 compression_gzip = ["flate2"]
 encode_json = ["serde_json"]
 encode_msgpack = ["rmp-serde"]
+uploader = ["hyper-multipart-rfc7578"]
 
 [dependencies]
 
@@ -53,4 +54,8 @@ optional = true
 
 [dependencies.rmp-serde]
 version = "1"
+optional = true
+
+[dependencies.hyper-multipart-rfc7578]
+version = "0.8"
 optional = true
