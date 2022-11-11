@@ -1,18 +1,16 @@
-use crate::inner::VkApiInner;
+use crate::inner::{create_client, decode, uncompress, VkApiInner};
 use crate::structs::Version;
 use crate::wrapper::VkApiWrapper;
 use hyper::body::Buf;
 use hyper::client::HttpConnector;
 use hyper::header::{CONTENT_ENCODING, CONTENT_TYPE};
 use hyper::http::request::Builder;
-use hyper::http::HeaderValue;
 use hyper::{Body, Client};
 use hyper_rustls::HttpsConnector;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use std::io::Read;
 
 /// # Base VK API client realisation.
 /// This client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
@@ -241,46 +239,4 @@ pub enum Encoding {
     #[cfg(feature = "encode_json")]
     Json,
     None,
-}
-
-fn create_client() -> Client<HttpsConnector<HttpConnector>, Body> {
-    let https = hyper_rustls::HttpsConnectorBuilder::new()
-        .with_native_roots()
-        .https_only()
-        .enable_http2()
-        .build();
-
-    Client::builder().http2_only(true).build(https)
-}
-
-fn uncompress<B: Read + 'static>(
-    encode: Option<&HeaderValue>,
-    body: B,
-) -> Result<Box<dyn Read>, VkApiError> {
-    match encode {
-        #[cfg(feature = "compression_zstd")]
-        Some(v) if v == "zstd" => Ok(Box::new(zstd::Decoder::new(body).map_err(VkApiError::IO)?)),
-        #[cfg(feature = "compression_gzip")]
-        Some(v) if v == "gzip" => Ok(Box::new(flate2::read::GzDecoder::new(body))),
-        _ => Ok(Box::new(body)),
-    }
-}
-
-fn decode<T: DeserializeOwned, B: Read>(
-    format: Option<&HeaderValue>,
-    body: B,
-) -> Result<T, VkApiError> {
-    match format.and_then(|f| f.to_str().ok()) {
-        #[cfg(feature = "encode_json")]
-        Some(v) if v.starts_with("application/json") => serde_json::from_reader::<B, T>(body)
-            .map_err(|e| VkApiError::ResponseDeserialize(ResponseDeserialize::Json(e))),
-        #[cfg(feature = "encode_msgpack")]
-        Some(v) if v.starts_with("application/x-msgpack") => {
-            rmp_serde::decode::from_read::<B, T>(body)
-                .map_err(|e| VkApiError::ResponseDeserialize(ResponseDeserialize::MsgPack(e)))
-        }
-        _ => Err(VkApiError::ResponseDeserialize(
-            ResponseDeserialize::BadEncoding,
-        )),
-    }
 }

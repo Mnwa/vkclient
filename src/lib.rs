@@ -43,6 +43,8 @@ mod inner;
 mod structs;
 mod vkapi;
 
+#[cfg(feature = "longpoll")]
+mod longpoll;
 #[cfg(feature = "uploader")]
 pub mod upload;
 mod wrapper;
@@ -51,3 +53,6 @@ pub use builder::VkApiBuilder;
 pub use structs::*;
 pub use vkapi::*;
 pub use wrapper::VkApiWrapper;
+
+#[cfg(feature = "longpoll")]
+pub use longpoll::*;
