@@ -224,7 +224,7 @@ impl Error for LongPollError {}
 /// Long poll request structure.
 /// * `server`, `key` and `ts` you should get from VK API.
 /// * `wait` is the timeout in seconds for this long poll request. Recommended value: 25.
-/// * `additional_params` is a custom struct, which will be inlined to request for passing external data, like a `mode`, `version`, etc.
+/// * `additional_params` is a custom struct, which will be inlined to request for passing external data, like a `mode`, `version`, etc. Put an empty tuple if you don't need it.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LongPollRequest<T> {
     pub server: String,
