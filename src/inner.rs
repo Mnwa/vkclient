@@ -47,7 +47,11 @@ impl From<&'_ VkApiInner> for Builder {
     }
 }
 
-pub(crate) fn create_client<B>() -> Client<HttpsConnector<HttpConnector>, B> {
+pub(crate) fn create_client<B>() -> Client<HttpsConnector<HttpConnector>, B>
+where
+    B: hyper::body::HttpBody + Send,
+    <B as hyper::body::HttpBody>::Data: Send,
+{
     let https = hyper_rustls::HttpsConnectorBuilder::new()
         .with_native_roots()
         .https_only()
