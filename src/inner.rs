@@ -4,7 +4,7 @@ use crate::{ResponseDeserialize, VkApiError};
 use hyper::client::HttpConnector;
 use hyper::header::{HeaderValue, ACCEPT, ACCEPT_ENCODING, AUTHORIZATION, CONTENT_TYPE};
 use hyper::http::request::Builder;
-use hyper::{Body, Client, Method, Request};
+use hyper::{Client, Method, Request};
 use hyper_rustls::HttpsConnector;
 use serde::de::DeserializeOwned;
 use std::io::Read;
@@ -47,7 +47,7 @@ impl From<&'_ VkApiInner> for Builder {
     }
 }
 
-pub(crate) fn create_client() -> Client<HttpsConnector<HttpConnector>, Body> {
+pub(crate) fn create_client<B>() -> Client<HttpsConnector<HttpConnector>, B> {
     let https = hyper_rustls::HttpsConnectorBuilder::new()
         .with_native_roots()
         .https_only()

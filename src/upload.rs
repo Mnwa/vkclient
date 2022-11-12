@@ -1,3 +1,4 @@
+use crate::inner::create_client;
 use crate::VkApiError;
 use cfg_if::cfg_if;
 use hyper::body::Buf;
@@ -85,14 +86,8 @@ impl VkUploader {
 
 impl Default for VkUploader {
     fn default() -> Self {
-        let https = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .https_only()
-            .enable_http2()
-            .build();
-
-        let client = Client::builder().http2_only(true).build(https);
-
-        Self { client }
+        Self {
+            client: create_client(),
+        }
     }
 }
