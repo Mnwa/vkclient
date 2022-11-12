@@ -12,9 +12,18 @@ authors = ["Mnwa <mikhail@panfilov.tech>"]
 repository = "https://github.com/Mnwa/vkclient"
 
 [features]
-default = ["compression_zstd", "compression_gzip", "encode_json", "encode_msgpack", "uploader", "longpoll"]
+default = [
+    "compression_zstd",
+    "compression_gzip",
+    "encode_json",
+    "encode_msgpack",
+    "uploader",
+    "longpoll",
+    "longpoll_stream"
+]
 
-longpoll = ["futures-util", "async-stream"]
+longpoll_stream = ["futures-util", "async-stream"]
+longpoll = []
 compression_zstd = ["zstd"]
 compression_gzip = ["flate2"]
 encode_json = ["serde_json"]

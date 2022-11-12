@@ -1,7 +1,6 @@
 use crate::inner::{create_client, decode, uncompress};
 use crate::VkApiError;
 use cfg_if::cfg_if;
-use futures_util::Stream;
 use hyper::body::Buf;
 use hyper::client::HttpConnector;
 use hyper::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
@@ -10,16 +9,18 @@ use hyper_rustls::HttpsConnector;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+// todo: DOCS
 #[derive(Debug, Clone)]
 pub struct LongPollClient {
     client: Client<HttpsConnector<HttpConnector>, Body>,
 }
 
 impl LongPollClient {
+    #[cfg(feature = "longpoll_stream")]
     pub fn subscribe<T: Serialize + Clone, I: DeserializeOwned>(
         &self,
         mut request: LongPollRequest<T>,
-    ) -> impl Stream<Item = Result<LongPollResponse<I>, VkApiError>> {
+    ) -> impl futures_util::Stream<Item = Result<LongPollResponse<I>, VkApiError>> {
         let client = self.client.clone();
         async_stream::try_stream! {
             loop {
@@ -27,7 +28,10 @@ impl LongPollClient {
                     LongPollResponse::Error { ts: Some(ts), .. } => {
                         request.ts = ts;
                     }
-                    r @ LongPollResponse::Success { .. } => yield r,
+                    LongPollResponse::Success { ts, updates } => {
+                        request.ts = ts;
+                        yield LongPollResponse::Success { ts, updates }
+                    },
                     r => {
                         yield r;
                         break;
