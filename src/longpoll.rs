@@ -11,9 +11,6 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-#[cfg(feature = "longpoll_stream")]
-use futures_util::{Stream, StreamExt, TryStreamExt};
-
 /// # Client for long poll subscriptions
 /// Use it to subscribe on some VK events, like
 /// the [UserLong Poll API](https://dev.vk.com/api/user-long-poll/getting-started)
@@ -59,19 +56,10 @@ impl VkLongPoll {
     #[cfg(feature = "longpoll_stream")]
     pub fn subscribe<T: Serialize + Clone, I: DeserializeOwned>(
         &self,
-        request: LongPollRequest<T>,
-    ) -> impl Stream<Item = Result<I, VkApiError>> {
-        self.subscribe_inner::<T, I>(request)
-            .map_ok(|r| futures_util::stream::iter(r.updates).map(Ok))
-            .try_flatten()
-    }
-
-    #[cfg(feature = "longpoll_stream")]
-    fn subscribe_inner<T: Serialize + Clone, I: DeserializeOwned>(
-        &self,
         mut request: LongPollRequest<T>,
-    ) -> impl Stream<Item = Result<LongPollSuccess<I>, VkApiError>> {
+    ) -> impl futures_util::Stream<Item = Result<I, VkApiError>> {
         let client = self.client.clone();
+
         async_stream::stream! {
             loop {
                 match Self::subscribe_once_with_client(&client, request.clone()).await {
@@ -80,10 +68,12 @@ impl VkLongPoll {
                     },
                     Ok(LongPollSuccess{ ts, updates }) => {
                         request.ts = ts.clone();
-                        yield Ok(LongPollSuccess { ts, updates })
+                        for update in updates {
+                            yield Ok(update);
+                        }
                     },
-                    r => {
-                        yield r;
+                    Err(e) => {
+                        yield Err(e);
                         break;
                     },
                 };
