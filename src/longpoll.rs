@@ -359,3 +359,52 @@ where
 {
     deserializer.deserialize_any(DeserializeUsizeOrStringOption)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::longpoll::{deserialize_usize_or_string, deserialize_usize_or_string_option};
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct Ts {
+        #[serde(deserialize_with = "deserialize_usize_or_string")]
+        ts: String,
+    }
+
+    #[derive(Deserialize)]
+    struct TsOpt {
+        #[serde(default)]
+        #[serde(deserialize_with = "deserialize_usize_or_string_option")]
+        ts: Option<String>,
+    }
+
+    #[test]
+    fn test_deserialize_ts_string() {
+        let ts: Ts = serde_json::from_str(r#"{"ts": "123"}"#).unwrap();
+        assert_eq!(ts.ts, "123".to_string())
+    }
+
+    #[test]
+    fn test_deserialize_ts_usize() {
+        let ts: Ts = serde_json::from_str(r#"{"ts": 123}"#).unwrap();
+        assert_eq!(ts.ts, "123".to_string())
+    }
+
+    #[test]
+    fn test_deserialize_ts_opt_string() {
+        let ts: TsOpt = serde_json::from_str(r#"{"ts": "123"}"#).unwrap();
+        assert_eq!(ts.ts, Some("123".to_string()))
+    }
+
+    #[test]
+    fn test_deserialize_ts_opt_usize() {
+        let ts: TsOpt = serde_json::from_str(r#"{"ts": 123}"#).unwrap();
+        assert_eq!(ts.ts, Some("123".to_string()))
+    }
+
+    #[test]
+    fn test_deserialize_ts_opt_none() {
+        let ts: TsOpt = serde_json::from_str(r#"{}"#).unwrap();
+        assert_eq!(ts.ts, None)
+    }
+}
