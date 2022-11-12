@@ -11,6 +11,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
+use std::sync::Arc;
 
 /// # Base VK API client realisation.
 /// This client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
@@ -22,7 +23,7 @@ use std::fmt::{Debug, Display, Formatter};
 /// ```
 #[derive(Debug, Clone)]
 pub struct VkApi {
-    inner: VkApiInner,
+    inner: Arc<VkApiInner>,
     client: Client<HttpsConnector<HttpConnector>, Body>,
 }
 
@@ -30,7 +31,10 @@ impl VkApi {
     pub(crate) fn from_inner(inner: VkApiInner) -> Self {
         let client = create_client();
 
-        Self { inner, client }
+        Self {
+            inner: Arc::new(inner),
+            client,
+        }
     }
 
     /// Send request to VK API. See list of [VK API methods](https://dev.vk.com/method).
@@ -109,7 +113,7 @@ impl VkApi {
         let body = serde_urlencoded::to_string(VkApiBody { v: version, body })
             .map_err(VkApiError::RequestSerialize)?;
 
-        let request = Builder::from(&self.inner)
+        let request = Builder::from(self.inner.as_ref())
             .uri(url)
             .body(hyper::Body::from(body))
             .map_err(VkApiError::Http)?;
@@ -136,6 +140,12 @@ impl VkApi {
             Response::Error { error } => Err(VkApiError::Vk(error)),
         }
     }
+
+    /// Returns `LongPollClient` client with the same connection pool as the vk api client.
+    #[cfg(feature = "longpoll")]
+    pub fn longpoll(&self) -> crate::longpoll::LongPollClient {
+        crate::longpoll::LongPollClient::from(self.client.clone())
+    }
 }
 
 /// Vk Api errors.
@@ -149,6 +159,8 @@ pub enum VkApiError {
     ResponseDeserialize(ResponseDeserialize),
     Vk(VkError),
     IO(std::io::Error),
+    #[cfg(feature = "longpoll")]
+    LongPoll(crate::longpoll::LongPollError),
 }
 
 impl Display for VkApiError {
@@ -160,6 +172,8 @@ impl Display for VkApiError {
             VkApiError::ResponseDeserialize(e) => Display::fmt(e, f),
             VkApiError::Vk(e) => Display::fmt(e, f),
             VkApiError::RequestSerialize(e) => Display::fmt(e, f),
+            #[cfg(feature = "longpoll")]
+            VkApiError::LongPoll(e) => Display::fmt(e, f),
         }
     }
 }
