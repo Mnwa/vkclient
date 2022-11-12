@@ -1,4 +1,4 @@
-use crate::inner::create_client;
+use crate::inner::{create_client, uncompress};
 use crate::VkApiError;
 use cfg_if::cfg_if;
 use hyper::body::Buf;
@@ -7,7 +7,7 @@ use hyper::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING};
 use hyper::{Client, Request};
 pub use hyper_multipart_rfc7578::client::multipart::*;
 use hyper_rustls::HttpsConnector;
-use std::io::{self, Read};
+use std::io::Read;
 
 /// # Upload files to VK Uploader Servers
 /// Firstly you need to get any uploader server from VK API.
@@ -66,21 +66,13 @@ impl VkUploader {
             .await
             .map_err(VkApiError::Request)?;
 
-        #[cfg(feature = "compression_gzip")]
-        if matches!(parts.headers.get(CONTENT_ENCODING), Some(e) if e == "gzip") {
-            let mut response = String::new();
+        let mut body = uncompress(parts.headers.get(CONTENT_ENCODING), body.reader())?;
 
-            let mut reader = flate2::read::GzDecoder::new(body.reader());
-            reader
-                .read_to_string(&mut response)
-                .map_err(VkApiError::IO)?;
+        let mut response = String::new();
 
-            return Ok(response);
-        }
+        body.read_to_string(&mut response).map_err(VkApiError::IO)?;
 
-        std::str::from_utf8(body.as_ref())
-            .map(|b| b.to_string())
-            .map_err(|e| VkApiError::IO(io::Error::new(io::ErrorKind::InvalidData, e)))
+        Ok(response)
     }
 }
 
