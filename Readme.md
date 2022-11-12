@@ -3,6 +3,11 @@
 This is a base pure rust implementation of VK API client.
 The client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
 
+## Supported features
+* API requests
+* Longpoll
+* Upload files
+
 See the [library documentation](https://docs.rs/vkclient) or [VK API documentation](https://dev.vk.com/reference) for more.
 
 ## Usage
