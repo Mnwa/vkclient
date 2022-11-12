@@ -143,8 +143,8 @@ impl VkApi {
 
     /// Returns `LongPollClient` client with the same connection pool as the vk api client.
     #[cfg(feature = "longpoll")]
-    pub fn longpoll(&self) -> crate::longpoll::LongPollClient {
-        crate::longpoll::LongPollClient::from(self.client.clone())
+    pub fn longpoll(&self) -> crate::longpoll::VkLongPoll {
+        crate::longpoll::VkLongPoll::from(self.client.clone())
     }
 }
 

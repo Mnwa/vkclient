@@ -1,7 +1,7 @@
 use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use vkclient::{LongPollRequest, VkApi, VkApiWrapper};
+use vkclient::{longpoll::LongPollRequest, VkApi, VkApiWrapper};
 
 fn main() {
     let access_token = std::env::var("SERVICE_TOKEN").unwrap();

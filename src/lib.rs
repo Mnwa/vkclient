@@ -1,6 +1,11 @@
 //! # Base VK API client realisation.
 //! This client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
 //!
+//! ## VK API Clients list:
+//! * [API client](crate::VkApi)
+//! * [Uploader client](crate::upload::VkUploader)
+//! * [Long Poll Client](crate::longpoll::VkLongPoll)
+//!
 //! ## Usage
 //! ```rust
 //! use vkclient::{List, VkApi, VkApiError};
@@ -33,10 +38,13 @@
 //! ```
 //!
 //! ## Features
-//! * compression_zstd - enabled by default. Adds zstd compression support;
-//! * compression_gzip - enabled by default. Adds gzip compression support;
-//! * encode_json - enabled by default. Adds json encoding support;
-//! * encode_msgpack - enabled by default. Adds msgpack encoding support;
+//! * [compression_zstd](crate::Compression) - enabled by default. Adds zstd compression support;
+//! * [compression_gzip](crate::Compression) - enabled by default. Adds gzip compression support;
+//! * [encode_json](crate::Encoding) - enabled by default. Adds json encoding support;
+//! * [encode_msgpack](crate::Encoding) - enabled by default. Adds msgpack encoding support;
+//! * [uploader](crate::upload::VkUploader) - enabled by default. Adds file uploads support.
+//! * [longpoll](crate::longpoll::VkLongPoll) - enabled by default. Adds longpoll support.
+//! * [longpoll_stream](crate::longpoll::VkLongPoll::subscribe) - enabled by default. Adds converter long poll queries to futures stream.
 
 mod builder;
 mod inner;
@@ -44,7 +52,7 @@ mod structs;
 mod vkapi;
 
 #[cfg(feature = "longpoll")]
-mod longpoll;
+pub mod longpoll;
 #[cfg(feature = "uploader")]
 pub mod upload;
 mod wrapper;
@@ -53,6 +61,3 @@ pub use builder::VkApiBuilder;
 pub use structs::*;
 pub use vkapi::*;
 pub use wrapper::VkApiWrapper;
-
-#[cfg(feature = "longpoll")]
-pub use longpoll::*;

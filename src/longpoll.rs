@@ -28,23 +28,23 @@ use futures_util::{Stream, StreamExt, TryStreamExt};
 /// ```
 ///
 /// ```rust
-/// use vkclient::LongPollClient;
+/// use vkclient::longpoll::VkLongPoll;
 ///
-/// let longpoll_client = LongPollClient::default();
+/// let longpoll_client = VkLongPoll::default();
 /// ```
 #[derive(Debug, Clone)]
-pub struct LongPollClient {
+pub struct VkLongPoll {
     client: Client<HttpsConnector<HttpConnector>, Body>,
 }
 
-impl LongPollClient {
+impl VkLongPoll {
     /// Returns an events stream from long poll server.
     ///
     /// ## Usage
     /// ```rust
-    /// use vkclient::{LongPollClient, LongPollRequest};
+    /// use vkclient::longpoll::{VkLongPoll, LongPollRequest};
     ///
-    /// let longpoll_client = LongPollClient::default();
+    /// let longpoll_client = VkLongPoll::default();
     ///
     /// longpoll_client.subscribe(LongPollRequest {
     ///         key,
@@ -95,9 +95,9 @@ impl LongPollClient {
     ///
     /// ## Usage
     /// ```rust
-    /// use vkclient::{LongPollClient, LongPollRequest};
+    /// use vkclient::longpoll::{VkLongPoll, LongPollRequest};
     ///
-    /// let longpoll_client = LongPollClient::default();
+    /// let longpoll_client = VkLongPoll::default();
     ///
     /// longpoll_client.subscribe_once(LongPollRequest {
     ///         key,
@@ -173,13 +173,13 @@ impl LongPollClient {
     }
 }
 
-impl From<Client<HttpsConnector<HttpConnector>, Body>> for LongPollClient {
+impl From<Client<HttpsConnector<HttpConnector>, Body>> for VkLongPoll {
     fn from(client: Client<HttpsConnector<HttpConnector>, Body>) -> Self {
         Self { client }
     }
 }
 
-impl Default for LongPollClient {
+impl Default for VkLongPoll {
     fn default() -> Self {
         Self::from(create_client())
     }
