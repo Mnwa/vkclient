@@ -62,7 +62,7 @@ impl VkUploader {
             .map_err(VkApiError::Request)?
             .into_parts();
 
-        let body = hyper::body::to_bytes(body)
+        let body = hyper::body::aggregate(body)
             .await
             .map_err(VkApiError::Request)?;
 

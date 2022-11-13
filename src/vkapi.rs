@@ -110,8 +110,12 @@ impl VkApi {
         #[cfg(not(feature = "encode_msgpack"))]
         let url = format!("https://{}/method/{}", self.inner.domain, method.as_ref());
 
-        let body = serde_urlencoded::to_string(VkApiBody { v: version, body })
-            .map_err(VkApiError::RequestSerialize)?;
+        let body = serde_urlencoded::to_string(VkApiBody {
+            v: &version,
+            access_token: self.inner.access_token.as_str(),
+            body,
+        })
+        .map_err(VkApiError::RequestSerialize)?;
 
         let request = Builder::from(self.inner.as_ref())
             .uri(url)
@@ -229,8 +233,9 @@ impl Display for VkError {
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct VkApiBody<T> {
-    v: Version,
+struct VkApiBody<'a, T> {
+    v: &'a Version,
+    access_token: &'a str,
     #[serde(flatten)]
     body: T,
 }

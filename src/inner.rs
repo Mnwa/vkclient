@@ -2,7 +2,7 @@ use crate::structs::Version;
 use crate::vkapi::{Compression, Encoding};
 use crate::{ResponseDeserialize, VkApiError};
 use hyper::client::HttpConnector;
-use hyper::header::{HeaderValue, ACCEPT, ACCEPT_ENCODING, AUTHORIZATION, CONTENT_TYPE};
+use hyper::header::{HeaderValue, ACCEPT, ACCEPT_ENCODING, CONTENT_TYPE};
 use hyper::http::request::Builder;
 use hyper::{Client, Method, Request};
 use hyper_rustls::HttpsConnector;
@@ -42,7 +42,6 @@ impl From<&'_ VkApiInner> for Builder {
                     Encoding::None => "text/*",
                 },
             )
-            .header(AUTHORIZATION, format!("Bearer {}", inner.access_token))
             .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
     }
 }
