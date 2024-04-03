@@ -1,12 +1,10 @@
 use crate::inner::{create_client, decode, uncompress, VkApiInner};
 use crate::structs::Version;
 use crate::wrapper::VkApiWrapper;
-use hyper::body::Buf;
-use hyper::client::HttpConnector;
-use hyper::header::{CONTENT_ENCODING, CONTENT_TYPE};
-use hyper::http::request::Builder;
-use hyper::{Body, Client};
-use hyper_rustls::HttpsConnector;
+use bytes::Buf;
+use cfg_if::cfg_if;
+use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
+use reqwest::Client;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -24,7 +22,7 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub struct VkApi {
     inner: Arc<VkApiInner>,
-    client: Client<HttpsConnector<HttpConnector>, Body>,
+    client: Client,
 }
 
 impl VkApi {
@@ -96,48 +94,62 @@ impl VkApi {
         B: Serialize,
         M: AsRef<str>,
     {
-        #[cfg(feature = "encode_msgpack")]
-        let url = if matches!(self.inner.format, Encoding::Msgpack) {
-            format!(
-                "https://{}/method/{}.msgpack",
-                self.inner.domain,
-                method.as_ref()
-            )
-        } else {
-            format!("https://{}/method/{}", self.inner.domain, method.as_ref())
-        };
+        cfg_if! {
+            if #[cfg(feature = "encode_msgpack")] {
+                let url = if matches!(self.inner.format, Encoding::Msgpack) {
+                    format!(
+                        "https://{}/method/{}.msgpack",
+                        self.inner.domain,
+                        method.as_ref()
+                    )
+                } else {
+                    format!("https://{}/method/{}", self.inner.domain, method.as_ref())
+                };
+            } else {
+                let url = format!("https://{}/method/{}", self.inner.domain, method.as_ref());
+            }
+        }
 
-        #[cfg(not(feature = "encode_msgpack"))]
-        let url = format!("https://{}/method/{}", self.inner.domain, method.as_ref());
-
-        let body = serde_urlencoded::to_string(VkApiBody {
-            v: &version,
-            access_token: self.inner.access_token.as_str(),
-            body,
-        })
-        .map_err(VkApiError::RequestSerialize)?;
-
-        let request = Builder::from(self.inner.as_ref())
-            .uri(url)
-            .body(hyper::Body::from(body))
-            .map_err(VkApiError::Http)?;
-
-        let response = self
+        let request = self
             .client
-            .request(request)
-            .await
-            .map_err(VkApiError::Request)?;
+            .post(url)
+            .header(
+                ACCEPT_ENCODING,
+                match self.inner.encoding {
+                    #[cfg(feature = "compression_zstd")]
+                    Compression::Zstd => "zstd",
+                    #[cfg(feature = "compression_gzip")]
+                    Compression::Gzip => "gzip",
+                    Compression::None => "identity",
+                },
+            )
+            .header(
+                ACCEPT,
+                match self.inner.format {
+                    #[cfg(feature = "encode_msgpack")]
+                    Encoding::Msgpack => "application/x-msgpack",
+                    #[cfg(feature = "encode_json")]
+                    Encoding::Json => "application/json",
+                    Encoding::None => "text/*",
+                },
+            )
+            .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .form(&VkApiBody {
+                v: &version,
+                access_token: self.inner.access_token.as_str(),
+                body,
+            });
 
-        let (parts, body) = response.into_parts();
+        let response = request.send().await.map_err(VkApiError::Request)?;
+        let headers = response.headers().clone();
 
-        let body = hyper::body::aggregate(body)
-            .await
-            .map_err(VkApiError::Request)?;
+        let content_type = headers.get(CONTENT_TYPE);
+        let content_encoding = headers.get(CONTENT_ENCODING);
 
-        let resp = decode::<Response<T>, _>(
-            parts.headers.get(CONTENT_TYPE),
-            uncompress(parts.headers.get(CONTENT_ENCODING), body.reader())?,
-        )?;
+        let body = response.bytes().await.map_err(VkApiError::Request)?;
+
+        let resp =
+            decode::<Response<T>, _>(content_type, uncompress(content_encoding, body.reader())?)?;
 
         match resp {
             Response::Success { response } => Ok(response),
@@ -157,8 +169,7 @@ impl VkApi {
 /// Other errors is about things around your request, like a serialization/deserialization or network errors.
 #[derive(Debug)]
 pub enum VkApiError {
-    Http(hyper::http::Error),
-    Request(hyper::Error),
+    Request(reqwest::Error),
     RequestSerialize(serde_urlencoded::ser::Error),
     ResponseDeserialize(ResponseDeserialize),
     Vk(VkError),
@@ -171,7 +182,6 @@ impl Display for VkApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VkApiError::IO(e) => Display::fmt(e, f),
-            VkApiError::Http(e) => Display::fmt(e, f),
             VkApiError::Request(e) => Display::fmt(e, f),
             VkApiError::ResponseDeserialize(e) => Display::fmt(e, f),
             VkApiError::Vk(e) => Display::fmt(e, f),

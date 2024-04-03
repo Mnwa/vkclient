@@ -1,11 +1,8 @@
 use crate::structs::Version;
 use crate::vkapi::{Compression, Encoding};
 use crate::{ResponseDeserialize, VkApiError};
-use hyper::client::HttpConnector;
-use hyper::header::{HeaderValue, ACCEPT, ACCEPT_ENCODING, CONTENT_TYPE};
-use hyper::http::request::Builder;
-use hyper::{Client, Method, Request};
-use hyper_rustls::HttpsConnector;
+use reqwest::header::HeaderValue;
+use reqwest::Client;
 use serde::de::DeserializeOwned;
 use std::io::Read;
 
@@ -18,46 +15,12 @@ pub(crate) struct VkApiInner {
     pub(crate) domain: String,
 }
 
-impl From<&'_ VkApiInner> for Builder {
-    fn from(inner: &VkApiInner) -> Self {
-        Request::builder()
-            .method(Method::POST)
-            .header(
-                ACCEPT_ENCODING,
-                match inner.encoding {
-                    #[cfg(feature = "compression_zstd")]
-                    Compression::Zstd => "zstd",
-                    #[cfg(feature = "compression_gzip")]
-                    Compression::Gzip => "gzip",
-                    Compression::None => "identity",
-                },
-            )
-            .header(
-                ACCEPT,
-                match inner.format {
-                    #[cfg(feature = "encode_msgpack")]
-                    Encoding::Msgpack => "application/x-msgpack",
-                    #[cfg(feature = "encode_json")]
-                    Encoding::Json => "application/json",
-                    Encoding::None => "text/*",
-                },
-            )
-            .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
-    }
-}
-
-pub(crate) fn create_client<B>() -> Client<HttpsConnector<HttpConnector>, B>
-where
-    B: hyper::body::HttpBody + Send,
-    <B as hyper::body::HttpBody>::Data: Send,
-{
-    let https = hyper_rustls::HttpsConnectorBuilder::new()
-        .with_native_roots()
-        .https_only()
-        .enable_http2()
-        .build();
-
-    Client::builder().http2_only(true).build(https)
+pub(crate) fn create_client() -> Client {
+    Client::builder()
+        .https_only(true)
+        .use_rustls_tls()
+        .build()
+        .unwrap()
 }
 
 pub(crate) fn uncompress<B: Read + 'static>(

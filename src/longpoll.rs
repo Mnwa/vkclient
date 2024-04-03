@@ -1,11 +1,9 @@
 use crate::inner::{create_client, decode, uncompress};
 use crate::VkApiError;
+use bytes::Buf;
 use cfg_if::cfg_if;
-use hyper::body::Buf;
-use hyper::client::HttpConnector;
-use hyper::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
-use hyper::{Body, Client, Method, Request};
-use hyper_rustls::HttpsConnector;
+use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
+use reqwest::Client;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::error::Error;
@@ -31,7 +29,7 @@ use std::fmt::{Display, Formatter};
 /// ```
 #[derive(Debug, Clone)]
 pub struct VkLongPoll {
-    client: Client<HttpsConnector<HttpConnector>, Body>,
+    client: Client,
 }
 
 impl VkLongPoll {
@@ -105,7 +103,7 @@ impl VkLongPoll {
     }
 
     async fn subscribe_once_with_client<T: Serialize, I: DeserializeOwned>(
-        client: &Client<HttpsConnector<HttpConnector>, Body>,
+        client: &Client,
         request: LongPollRequest<T>,
     ) -> Result<LongPollSuccess<I>, VkApiError> {
         let LongPollInnerRequest(LongPollServer(server), params) =
@@ -135,25 +133,22 @@ impl VkLongPoll {
             }
         }
 
-        let request = Request::builder()
-            .method(Method::GET)
+        let request = client
+            .get(url)
             .header(ACCEPT_ENCODING, encoding)
-            .header(ACCEPT, serialisation)
-            .uri(url)
-            .body(Body::empty())
-            .map_err(VkApiError::Http)?;
+            .header(ACCEPT, serialisation);
 
-        let response = client.request(request).await.map_err(VkApiError::Request)?;
+        let response = request.send().await.map_err(VkApiError::Request)?;
+        let headers = response.headers().clone();
 
-        let (parts, body) = response.into_parts();
+        let content_type = headers.get(CONTENT_TYPE);
+        let content_encoding = headers.get(CONTENT_ENCODING);
 
-        let body = hyper::body::aggregate(body)
-            .await
-            .map_err(VkApiError::Request)?;
+        let body = response.bytes().await.map_err(VkApiError::Request)?;
 
         let resp = decode::<LongPollResponse<I>, _>(
-            parts.headers.get(CONTENT_TYPE),
-            uncompress(parts.headers.get(CONTENT_ENCODING), body.reader())?,
+            content_type,
+            uncompress(content_encoding, body.reader())?,
         )?;
 
         match resp {
@@ -163,8 +158,8 @@ impl VkLongPoll {
     }
 }
 
-impl From<Client<HttpsConnector<HttpConnector>, Body>> for VkLongPoll {
-    fn from(client: Client<HttpsConnector<HttpConnector>, Body>) -> Self {
+impl From<Client> for VkLongPoll {
+    fn from(client: Client) -> Self {
         Self { client }
     }
 }

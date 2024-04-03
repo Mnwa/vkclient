@@ -1,12 +1,10 @@
 use crate::inner::{create_client, uncompress};
 use crate::VkApiError;
+use bytes::Buf;
 use cfg_if::cfg_if;
-use hyper::body::Buf;
-use hyper::client::HttpConnector;
-use hyper::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING};
-use hyper::{Client, Request};
-pub use hyper_multipart_rfc7578::client::multipart::*;
-use hyper_rustls::HttpsConnector;
+use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING};
+use reqwest::multipart::Form;
+use reqwest::Client;
 use std::io::Read;
 
 /// # Upload files to VK Uploader Servers
@@ -29,18 +27,14 @@ use std::io::Read;
 /// [Read more about uploads](https://dev.vk.com/api/upload).
 #[derive(Clone, Debug)]
 pub struct VkUploader {
-    client: Client<HttpsConnector<HttpConnector>, Body>,
+    client: Client,
 }
 
 impl VkUploader {
     /// Upload any form to given url.
     /// Supports gzip encoding for responses.
     /// Returns String, which must be passed to VK save file API.
-    pub async fn upload<U: AsRef<str>>(
-        &self,
-        url: U,
-        form: Form<'static>,
-    ) -> Result<String, VkApiError> {
+    pub async fn upload<U: AsRef<str>>(&self, url: U, form: Form) -> Result<String, VkApiError> {
         cfg_if! {
             if #[cfg(feature = "compression_gzip")] {
                 let encoding ="gzip";
@@ -49,24 +43,21 @@ impl VkUploader {
             }
         }
 
-        let req_builder = Request::post(url.as_ref())
-            .header(ACCEPT_ENCODING, encoding)
-            .header(ACCEPT, "application/json");
-
-        let req = form.set_body::<Body>(req_builder).unwrap();
-
-        let (parts, body) = self
+        let req = self
             .client
-            .request(req)
-            .await
-            .map_err(VkApiError::Request)?
-            .into_parts();
+            .post(url.as_ref())
+            .header(ACCEPT_ENCODING, encoding)
+            .header(ACCEPT, "application/json")
+            .multipart(form);
 
-        let body = hyper::body::aggregate(body)
-            .await
-            .map_err(VkApiError::Request)?;
+        let response = req.send().await.map_err(VkApiError::Request)?;
+        let headers = response.headers().clone();
 
-        let mut body = uncompress(parts.headers.get(CONTENT_ENCODING), body.reader())?;
+        let content_encoding = headers.get(CONTENT_ENCODING);
+
+        let body = response.bytes().await.map_err(VkApiError::Request)?;
+
+        let mut body = uncompress(content_encoding, body.reader())?;
 
         let mut response = String::new();
 

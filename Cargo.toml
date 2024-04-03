@@ -1,6 +1,6 @@
 [package]
 name = "vkclient"
-version = "4.0.4"
+version = "5.0.0"
 edition = "2021"
 description = "Vk Api client implementation"
 documentation = "https://docs.rs/vkclient"
@@ -28,20 +28,20 @@ compression_zstd = ["zstd"]
 compression_gzip = ["flate2"]
 encode_json = ["serde_json"]
 encode_msgpack = ["rmp-serde"]
-uploader = ["hyper-multipart-rfc7578"]
+uploader = ["reqwest/multipart"]
 
 [dependencies]
 
-[dependencies.cfg-if]
+[dependencies.bytes]
 version = "1"
 
-[dependencies.hyper-rustls]
-version = "0.24"
-features = ["http2"]
+[dependencies.reqwest]
+version = "0.12"
+default-features = false
+features = ["rustls-tls", "charset", "http2", "macos-system-configuration"]
 
-[dependencies.hyper]
-version = "0.14"
-features = ["client", "http2"]
+[dependencies.cfg-if]
+version = "1"
 
 [dependencies.serde_urlencoded]
 version = "0.7"
@@ -51,7 +51,7 @@ version = "1"
 features = ["derive"]
 
 [dependencies.zstd]
-version = "0.12"
+version = "0.13"
 optional = true
 
 [dependencies.flate2]
@@ -64,10 +64,6 @@ optional = true
 
 [dependencies.rmp-serde]
 version = "1"
-optional = true
-
-[dependencies.hyper-multipart-rfc7578]
-version = "0.8"
 optional = true
 
 [dependencies.futures-util]
