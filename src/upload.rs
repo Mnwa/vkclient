@@ -3,7 +3,7 @@ use crate::VkApiError;
 use bytes::Buf;
 use cfg_if::cfg_if;
 use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING};
-use reqwest::multipart::Form;
+pub use reqwest::multipart::Form;
 use reqwest::Client;
 use std::io::Read;
 
