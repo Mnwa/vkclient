@@ -1,4 +1,5 @@
 use crate::inner::{create_client, uncompress};
+use crate::longpoll::VkLongPoll;
 use crate::VkApiError;
 use bytes::Buf;
 use cfg_if::cfg_if;
@@ -22,6 +23,13 @@ use std::io::Read;
 /// async {
 ///     let response: String = uploader.upload(url, form).await.expect("uploading error");
 /// }
+/// ```
+///
+/// ```rust
+/// use vkclient::VkApi;
+/// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
+///
+/// let uploader = client.uploader();
 /// ```
 ///
 /// [Read more about uploads](https://dev.vk.com/api/upload).
@@ -64,6 +72,12 @@ impl VkUploader {
         body.read_to_string(&mut response).map_err(VkApiError::IO)?;
 
         Ok(response)
+    }
+}
+
+impl From<Client> for VkUploader {
+    fn from(client: Client) -> Self {
+        Self { client }
     }
 }
 
