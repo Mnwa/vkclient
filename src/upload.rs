@@ -51,9 +51,9 @@ impl VkUploader {
             .multipart(form);
 
         let response = req.send().await.map_err(VkApiError::Request)?;
-        let headers = response.headers().clone();
+        let headers = response.headers();
 
-        let content_encoding = headers.get(CONTENT_ENCODING);
+        let content_encoding = headers.get(CONTENT_ENCODING).cloned();
 
         let body = response.bytes().await.map_err(VkApiError::Request)?;
 

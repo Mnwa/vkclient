@@ -24,7 +24,7 @@ pub(crate) fn create_client() -> Client {
 }
 
 pub(crate) fn uncompress<B: Read + 'static>(
-    encode: Option<&HeaderValue>,
+    encode: Option<HeaderValue>,
     body: B,
 ) -> Result<Box<dyn Read>, VkApiError> {
     match encode {
@@ -37,7 +37,7 @@ pub(crate) fn uncompress<B: Read + 'static>(
 }
 
 pub(crate) fn decode<T: DeserializeOwned, B: Read>(
-    format: Option<&HeaderValue>,
+    format: Option<HeaderValue>,
     body: B,
 ) -> Result<T, VkApiError> {
     match format.and_then(|f| f.to_str().ok()) {
