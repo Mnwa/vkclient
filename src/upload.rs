@@ -1,5 +1,4 @@
 use crate::inner::{create_client, uncompress};
-use crate::longpoll::VkLongPoll;
 use crate::VkApiError;
 use bytes::Buf;
 use cfg_if::cfg_if;
