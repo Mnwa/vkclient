@@ -40,7 +40,7 @@ pub(crate) fn decode<T: DeserializeOwned, B: Read>(
     format: Option<HeaderValue>,
     body: B,
 ) -> Result<T, VkApiError> {
-    match format.and_then(|f| f.to_str().ok()) {
+    match format.as_ref().and_then(|f| f.to_str().ok()) {
         #[cfg(feature = "encode_json")]
         Some(v) if v.starts_with("application/json") => serde_json::from_reader::<B, T>(body)
             .map_err(|e| VkApiError::ResponseDeserialize(ResponseDeserialize::Json(e))),
