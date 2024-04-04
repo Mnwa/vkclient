@@ -157,13 +157,13 @@ impl VkApi {
         }
     }
 
-    /// Returns `LongPollClient` client with the same connection pool as the vk api client.
+    /// Returns `VkLongPoll` client with the same connection pool as the vk api client.
     #[cfg(feature = "longpoll")]
     pub fn longpoll(&self) -> crate::longpoll::VkLongPoll {
         crate::longpoll::VkLongPoll::from(self.client.clone())
     }
 
-    /// Returns `LongPollClient` client with the same connection pool as the vk api client.
+    /// Returns `VkUploader` client with the same connection pool as the vk api client.
     #[cfg(feature = "uploader")]
     pub fn uploader(&self) -> crate::upload::VkUploader {
         crate::upload::VkUploader::from(self.client.clone())
