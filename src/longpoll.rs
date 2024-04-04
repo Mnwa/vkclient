@@ -180,6 +180,7 @@ enum LongPollResponse<R> {
 /// Long poll events chunk. You should to replace ts on next request with this value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LongPollSuccess<R> {
+    #[serde(deserialize_with = "deserialize_usize_or_string")]
     ts: String,
     updates: Vec<R>,
 }
