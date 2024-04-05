@@ -1,0 +1,30 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build/test the library
+      run: |
+        cargo build
+        cargo check
+
+    - name: Build/test examples
+      run: |
+        for example in `ls examples/`; do
+            pushd "examples/$example"
+                cargo build
+                cargo check
+            popd
+        done
