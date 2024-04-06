@@ -15,16 +15,35 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Build/test the library
+    - name: Build and test
       run: |
-        cargo build
-        cargo check
+        function performTasks() {
+          cargo build
+          cargo check
+          cargo clippy -- \
+            -Wclippy::pedantic \
+            -Wclippy::nursery \
+            -Wclippy::create_dir \
+            -Wclippy::empty_structs_with_brackets \
+            -Wclippy::filetype_is_file \
+            -Wclippy::get_unwrap \
+            -Wclippy::indexing_slicing \
+            -Wclippy::impl_trait_in_params \
+            -Wclippy::lossy_float_literal \
+            -Wclippy::str_to_string \
+            -Wclippy::string_add \
+            -Wclippy::string_to_string \
+            -Wclippy::suspicious_xor_used_as_pow \
+            -Wclippy::unneeded_field_pattern \
+            -Wclippy::unnecessary_self_imports \
+            -Wclippy::unseparated_literal_suffix \
+            -Wclippy::todo
+        }
 
-    - name: Build/test examples
-      run: |
+        performTasks
+
         for example in `ls examples/`; do
             pushd "examples/$example"
-                cargo build
-                cargo check
+                performTasks
             popd
         done
