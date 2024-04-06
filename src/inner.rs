@@ -7,7 +7,7 @@ use serde::de::DeserializeOwned;
 use std::io::Read;
 
 #[derive(Clone, Debug)]
-pub(crate) struct VkApiInner {
+pub struct VkApiInner {
     pub(crate) encoding: Compression,
     pub(crate) format: Encoding,
     pub(crate) access_token: String,
@@ -15,7 +15,7 @@ pub(crate) struct VkApiInner {
     pub(crate) domain: String,
 }
 
-pub(crate) fn create_client() -> Client {
+pub fn create_client() -> Client {
     Client::builder()
         .https_only(true)
         .use_rustls_tls()
@@ -23,7 +23,7 @@ pub(crate) fn create_client() -> Client {
         .unwrap()
 }
 
-pub(crate) fn uncompress<B: Read + 'static>(
+pub fn uncompress<B: Read + 'static>(
     encode: Option<HeaderValue>,
     body: B,
 ) -> Result<Box<dyn Read>, VkApiError> {
@@ -36,8 +36,8 @@ pub(crate) fn uncompress<B: Read + 'static>(
     }
 }
 
-pub(crate) fn decode<T: DeserializeOwned, B: Read>(
-    format: Option<HeaderValue>,
+pub fn decode<T: DeserializeOwned, B: Read>(
+    format: &Option<HeaderValue>,
     body: B,
 ) -> Result<T, VkApiError> {
     match format.as_ref().and_then(|f| f.to_str().ok()) {

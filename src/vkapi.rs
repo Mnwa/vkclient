@@ -66,8 +66,8 @@ impl VkApi {
     pub async fn send_request<T, B, M>(&self, method: M, body: B) -> Result<T, VkApiError>
     where
         T: DeserializeOwned,
-        B: Serialize,
-        M: AsRef<str>,
+        B: Serialize + Send,
+        M: AsRef<str> + Send,
     {
         self.send_request_with_version(method, body, self.inner.version)
             .await
@@ -76,7 +76,7 @@ impl VkApi {
     /// Send request to VK API struct that implement `VkApiWrapper` trait
     pub async fn send_request_with_wrapper<W>(&self, wrapper: W) -> Result<W::Response, VkApiError>
     where
-        W: VkApiWrapper + Serialize,
+        W: VkApiWrapper + Serialize + Send,
     {
         self.send_request_with_version(W::get_method_name(), wrapper, W::get_version())
             .await
@@ -91,8 +91,8 @@ impl VkApi {
     ) -> Result<T, VkApiError>
     where
         T: DeserializeOwned,
-        B: Serialize,
-        M: AsRef<str>,
+        B: Serialize + Send,
+        M: AsRef<str> + Send,
     {
         cfg_if! {
             if #[cfg(feature = "encode_msgpack")] {
@@ -149,7 +149,7 @@ impl VkApi {
         let body = response.bytes().await.map_err(VkApiError::Request)?;
 
         let resp =
-            decode::<Response<T>, _>(content_type, uncompress(content_encoding, body.reader())?)?;
+            decode::<Response<T>, _>(&content_type, uncompress(content_encoding, body.reader())?)?;
 
         match resp {
             Response::Success { response } => Ok(response),
@@ -171,7 +171,7 @@ impl VkApi {
 }
 
 /// Vk Api errors.
-/// VkApiError::Vk - is an error of buisness logic, like expired token or incorrect request params
+/// `VkApiError::Vk` - is an error of buisness logic, like expired token or incorrect request params
 /// Other errors is about things around your request, like a serialization/deserialization or network errors.
 #[derive(Debug)]
 pub enum VkApiError {
@@ -187,13 +187,13 @@ pub enum VkApiError {
 impl Display for VkApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            VkApiError::IO(e) => Display::fmt(e, f),
-            VkApiError::Request(e) => Display::fmt(e, f),
-            VkApiError::ResponseDeserialize(e) => Display::fmt(e, f),
-            VkApiError::Vk(e) => Display::fmt(e, f),
-            VkApiError::RequestSerialize(e) => Display::fmt(e, f),
+            Self::IO(e) => Display::fmt(e, f),
+            Self::Request(e) => Display::fmt(e, f),
+            Self::ResponseDeserialize(e) => Display::fmt(e, f),
+            Self::Vk(e) => Display::fmt(e, f),
+            Self::RequestSerialize(e) => Display::fmt(e, f),
             #[cfg(feature = "longpoll")]
-            VkApiError::LongPoll(e) => Display::fmt(e, f),
+            Self::LongPoll(e) => Display::fmt(e, f),
         }
     }
 }
@@ -213,10 +213,10 @@ impl Display for ResponseDeserialize {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "encode_json")]
-            ResponseDeserialize::Json(e) => Display::fmt(e, f),
+            Self::Json(e) => Display::fmt(e, f),
             #[cfg(feature = "encode_msgpack")]
-            ResponseDeserialize::MsgPack(e) => Display::fmt(e, f),
-            ResponseDeserialize::BadEncoding => {
+            Self::MsgPack(e) => Display::fmt(e, f),
+            Self::BadEncoding => {
                 write!(f, "vk api bad encoding or compression returned")
             }
         }
