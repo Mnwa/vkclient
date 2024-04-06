@@ -42,8 +42,8 @@ jobs:
 
         performTasks
 
-        for example in `ls examples/`; do
-            pushd "examples/$example"
+        for example in examples/*; do
+            pushd $example
                 performTasks
             popd
         done
