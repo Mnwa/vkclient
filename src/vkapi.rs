@@ -37,10 +37,10 @@ impl VkApi {
 
     /// Send request to VK API. See list of [VK API methods](https://dev.vk.com/method).
     /// ```rust
-    /// use vkclient::{VkApi, VkApiError, List};
+    /// use vkclient::{VkApi, VkApiResult, List};
     /// use serde::{Deserialize, Serialize};
     ///
-    /// async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
+    /// async fn get_users_info(client: &VkApi) -> VkApiResult<Vec<UsersGetResponse>> {
     ///     client.send_request("users.get", UsersGetRequest {
     ///         user_ids: List(vec![1,2]),
     ///         fields: List(vec!["id", "sex"]),
@@ -63,7 +63,7 @@ impl VkApi {
     ///
     ///
     /// ```
-    pub async fn send_request<T, B, M>(&self, method: M, body: B) -> Result<T, VkApiError>
+    pub async fn send_request<T, B, M>(&self, method: M, body: B) -> VkApiResult<T>
     where
         T: DeserializeOwned,
         B: Serialize + Send,
@@ -74,7 +74,7 @@ impl VkApi {
     }
 
     /// Send request to VK API struct that implement `VkApiWrapper` trait
-    pub async fn send_request_with_wrapper<W>(&self, wrapper: W) -> Result<W::Response, VkApiError>
+    pub async fn send_request_with_wrapper<W>(&self, wrapper: W) -> VkApiResult<W::Response>
     where
         W: VkApiWrapper + Serialize + Send,
     {
@@ -88,7 +88,7 @@ impl VkApi {
         method: M,
         body: B,
         version: Version,
-    ) -> Result<T, VkApiError>
+    ) -> VkApiResult<T>
     where
         T: DeserializeOwned,
         B: Serialize + Send,
@@ -199,6 +199,9 @@ impl Display for VkApiError {
 }
 
 impl Error for VkApiError {}
+
+/// Shorthand for ``Result<T, VkApiError>``
+pub type VkApiResult<T> = Result<T, VkApiError>;
 
 #[derive(Debug)]
 pub enum ResponseDeserialize {

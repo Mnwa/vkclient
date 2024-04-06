@@ -1,5 +1,5 @@
 use crate::inner::{create_client, decode, uncompress};
-use crate::VkApiError;
+use crate::{VkApiError, VkApiResult};
 use bytes::Buf;
 use cfg_if::cfg_if;
 use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
@@ -55,7 +55,7 @@ impl VkLongPoll {
     pub fn subscribe<T: Serialize + Clone + Send, I: DeserializeOwned>(
         &self,
         mut request: LongPollRequest<T>,
-    ) -> impl futures_util::Stream<Item = Result<I, VkApiError>> {
+    ) -> impl futures_util::Stream<Item = VkApiResult<I>> {
         let client = self.client.clone();
 
         async_stream::stream! {
@@ -98,14 +98,14 @@ impl VkLongPoll {
     pub async fn subscribe_once<T: Serialize + Send, I: DeserializeOwned>(
         &self,
         request: LongPollRequest<T>,
-    ) -> Result<LongPollSuccess<I>, VkApiError> {
+    ) -> VkApiResult<LongPollSuccess<I>> {
         Self::subscribe_once_with_client(&self.client, request).await
     }
 
     async fn subscribe_once_with_client<T: Serialize + Send, I: DeserializeOwned>(
         client: &Client,
         request: LongPollRequest<T>,
-    ) -> Result<LongPollSuccess<I>, VkApiError> {
+    ) -> VkApiResult<LongPollSuccess<I>> {
         let LongPollInnerRequest(LongPollServer(server), params) =
             LongPollInnerRequest::from(request);
 

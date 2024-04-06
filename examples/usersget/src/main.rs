@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
-use vkclient::{Compression, Encoding, List, VkApi, VkApiError};
+use vkclient::{Compression, Encoding, List, VkApi, VkApiResult};
 
 fn main() {
     let access_token = std::env::var("SERVICE_TOKEN").unwrap();
@@ -66,7 +66,7 @@ fn main() {
         println!("msgpack+none {} micros", i.elapsed().as_micros());
     });
 }
-async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
+async fn get_users_info(client: &VkApi) -> VkApiResult<Vec<UsersGetResponse>> {
     client
         .send_request(
             "users.get",

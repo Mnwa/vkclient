@@ -1,6 +1,6 @@
 use crate::structs::Version;
 use crate::vkapi::{Compression, Encoding};
-use crate::{ResponseDeserialize, VkApiError};
+use crate::{ResponseDeserialize, VkApiError, VkApiResult};
 use reqwest::header::HeaderValue;
 use reqwest::Client;
 use serde::de::DeserializeOwned;
@@ -26,7 +26,7 @@ pub fn create_client() -> Client {
 pub fn uncompress<B: Read + 'static>(
     encode: Option<HeaderValue>,
     body: B,
-) -> Result<Box<dyn Read>, VkApiError> {
+) -> VkApiResult<Box<dyn Read>> {
     match encode {
         #[cfg(feature = "compression_zstd")]
         Some(v) if v == "zstd" => Ok(Box::new(zstd::Decoder::new(body).map_err(VkApiError::IO)?)),
@@ -39,7 +39,7 @@ pub fn uncompress<B: Read + 'static>(
 pub fn decode<T: DeserializeOwned, B: Read>(
     format: &Option<HeaderValue>,
     body: B,
-) -> Result<T, VkApiError> {
+) -> VkApiResult<T> {
     match format.as_ref().and_then(|f| f.to_str().ok()) {
         #[cfg(feature = "encode_json")]
         Some(v) if v.starts_with("application/json") => serde_json::from_reader::<B, T>(body)
