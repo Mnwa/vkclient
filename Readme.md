@@ -21,10 +21,10 @@ fn main() {
 ```
 
 ```rust
-use vkclient::{VkApi, VkApiError, List};
+use vkclient::{VkApi, VkApiResult, List};
 use serde::{Deserialize, Serialize};
 
-async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
+async fn get_users_info(client: &VkApi) -> VkApiResult<Vec<UsersGetResponse>> {
     client.send_request("users.get", UsersGetRequest {
         user_ids: List(vec![1,2]),
         fields: List(vec!["id", "sex"]),

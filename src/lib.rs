@@ -8,14 +8,14 @@
 //!
 //! ## Usage
 //! ```rust
-//! use vkclient::{List, VkApi, VkApiError};
+//! use vkclient::{List, VkApi, VkApiResult};
 //! let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 //!
 //! async {
 //!     let users = get_users_info(&client).await.unwrap();
 //! }
 //!
-//! async fn get_users_info(client: &VkApi) -> Result<Vec<UsersGetResponse>, VkApiError> {
+//! async fn get_users_info(client: &VkApi) -> VkApiResult<Vec<UsersGetResponse>> {
 //!     client.send_request("users.get", UsersGetRequest {
 //!         user_ids: List(vec![1,2]),
 //!         fields: List(vec!["id", "sex"]),
