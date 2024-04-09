@@ -52,7 +52,7 @@ impl VkLongPoll {
     ///     .for_each(|r| async move { println!("{:?}", r) });
     /// ```
     #[cfg(feature = "longpoll_stream")]
-    pub fn subscribe<T: Serialize + Clone, I: DeserializeOwned>(
+    pub fn subscribe<T: Serialize + Clone + Send, I: DeserializeOwned>(
         &self,
         mut request: LongPollRequest<T>,
     ) -> impl futures_util::Stream<Item = VkApiResult<I>> {
@@ -95,14 +95,14 @@ impl VkLongPoll {
     ///         additional_params: (),
     ///     });
     /// ```
-    pub async fn subscribe_once<T: Serialize, I: DeserializeOwned>(
+    pub async fn subscribe_once<T: Serialize + Send, I: DeserializeOwned>(
         &self,
         request: LongPollRequest<T>,
     ) -> VkApiResult<LongPollSuccess<I>> {
         Self::subscribe_once_with_client(&self.client, request).await
     }
 
-    async fn subscribe_once_with_client<T: Serialize, I: DeserializeOwned>(
+    async fn subscribe_once_with_client<T: Serialize + Send, I: DeserializeOwned>(
         client: &Client,
         request: LongPollRequest<T>,
     ) -> VkApiResult<LongPollSuccess<I>> {
@@ -112,9 +112,9 @@ impl VkLongPoll {
         let params = serde_urlencoded::to_string(params).map_err(VkApiError::RequestSerialize)?;
 
         let url = if server.starts_with("http") {
-            format!("{}?act=a_check&{}", server, params)
+            format!("{server}?act=a_check&{params}")
         } else {
-            format!("https://{}?act=a_check&{}", server, params)
+            format!("https://{server}?act=a_check&{params}")
         };
 
         cfg_if! {
@@ -147,7 +147,7 @@ impl VkLongPoll {
         let body = response.bytes().await.map_err(VkApiError::Request)?;
 
         let resp = decode::<LongPollResponse<I>, _>(
-            content_type,
+            &content_type,
             uncompress(content_encoding, body.reader())?,
         )?;
 
@@ -247,7 +247,7 @@ impl<T> From<LongPollRequest<T>> for LongPollInnerRequest<T> {
             additional_params,
         }: LongPollRequest<T>,
     ) -> Self {
-        LongPollInnerRequest(
+        Self(
             LongPollServer(server),
             LongPollQueryParams {
                 key,
@@ -279,7 +279,7 @@ impl<'de> serde::de::Visitor<'de> for DeserializeUsizeOrString {
     where
         E: serde::de::Error,
     {
-        Ok(v.to_string())
+        Ok(v.to_owned())
     }
 
     fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
@@ -310,7 +310,7 @@ impl<'de> serde::de::Visitor<'de> for DeserializeUsizeOrStringOption {
     where
         E: serde::de::Error,
     {
-        Ok(Some(v.to_string()))
+        Ok(Some(v.to_owned()))
     }
 
     fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
@@ -367,30 +367,30 @@ mod tests {
     #[test]
     fn test_deserialize_ts_string() {
         let ts: Ts = serde_json::from_str(r#"{"ts": "123"}"#).unwrap();
-        assert_eq!(ts.ts, "123".to_string())
+        assert_eq!(ts.ts, "123".to_owned());
     }
 
     #[test]
     fn test_deserialize_ts_usize() {
         let ts: Ts = serde_json::from_str(r#"{"ts": 123}"#).unwrap();
-        assert_eq!(ts.ts, "123".to_string())
+        assert_eq!(ts.ts, "123".to_owned());
     }
 
     #[test]
     fn test_deserialize_ts_opt_string() {
         let ts: TsOpt = serde_json::from_str(r#"{"ts": "123"}"#).unwrap();
-        assert_eq!(ts.ts, Some("123".to_string()))
+        assert_eq!(ts.ts, Some("123".to_owned()));
     }
 
     #[test]
     fn test_deserialize_ts_opt_usize() {
         let ts: TsOpt = serde_json::from_str(r#"{"ts": 123}"#).unwrap();
-        assert_eq!(ts.ts, Some("123".to_string()))
+        assert_eq!(ts.ts, Some("123".to_owned()));
     }
 
     #[test]
     fn test_deserialize_ts_opt_none() {
-        let ts: TsOpt = serde_json::from_str(r#"{}"#).unwrap();
-        assert_eq!(ts.ts, None)
+        let ts: TsOpt = serde_json::from_str("{}").unwrap();
+        assert_eq!(ts.ts, None);
     }
 }

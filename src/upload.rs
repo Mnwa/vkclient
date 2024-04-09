@@ -41,7 +41,11 @@ impl VkUploader {
     /// Upload any form to given url.
     /// Supports gzip encoding for responses.
     /// Returns String, which must be passed to VK save file API.
-    pub async fn upload<U: AsRef<str>>(&self, url: U, form: Form) -> VkApiResult<String> {
+    pub async fn upload<U: AsRef<str> + Send>(
+        &self,
+        url: U,
+        form: Form,
+    ) -> VkApiResult<String> {
         cfg_if! {
             if #[cfg(feature = "compression_gzip")] {
                 let encoding ="gzip";

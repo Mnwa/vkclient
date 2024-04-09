@@ -38,13 +38,13 @@
 //! ```
 //!
 //! ## Features
-//! * [compression_zstd](crate::Compression) - enabled by default. Adds zstd compression support;
-//! * [compression_gzip](crate::Compression) - enabled by default. Adds gzip compression support;
-//! * [encode_json](crate::Encoding) - enabled by default. Adds json encoding support;
-//! * [encode_msgpack](crate::Encoding) - enabled by default. Adds msgpack encoding support;
-//! * [uploader](crate::upload::VkUploader) - enabled by default. Adds file uploads support.
-//! * [longpoll](crate::longpoll::VkLongPoll) - enabled by default. Adds longpoll support.
-//! * [longpoll_stream](crate::longpoll::VkLongPoll::subscribe) - enabled by default. Adds converter long poll queries to futures stream.
+//! * [`compression_zstd`](crate::Compression) - enabled by default. Adds zstd compression support;
+//! * [`compression_gzip`](crate::Compression) - enabled by default. Adds gzip compression support;
+//! * [`encode_json`](crate::Encoding) - enabled by default. Adds json encoding support;
+//! * [`encode_msgpack`](crate::Encoding) - enabled by default. Adds msgpack encoding support;
+//! * [`uploader`](crate::upload::VkUploader) - enabled by default. Adds file uploads support.
+//! * [`longpoll`](crate::longpoll::VkLongPoll) - enabled by default. Adds longpoll support.
+//! * [`longpoll_stream`](crate::longpoll::VkLongPoll::subscribe) - enabled by default. Adds converter long poll queries to futures stream.
 
 mod builder;
 mod inner;

@@ -35,7 +35,7 @@ impl VkApiBuilder {
             inner: VkApiInner {
                 access_token,
                 version: Version::default(),
-                domain: "api.vk.com".to_string(),
+                domain: "api.vk.com".to_owned(),
                 format,
                 encoding,
             },
@@ -43,31 +43,36 @@ impl VkApiBuilder {
     }
 
     /// Pass new access token to builder
+    #[must_use]
     pub fn with_access_token(mut self, access_token: String) -> Self {
         self.inner.access_token = access_token;
         self
     }
 
     /// Pass new version to builder. Default is 5.131
-    pub fn with_version(mut self, version: Version) -> Self {
+    #[must_use]
+    pub const fn with_version(mut self, version: Version) -> Self {
         self.inner.version = version;
         self
     }
 
     /// Pass new API domain to builder. Default is api.vk.com
+    #[must_use]
     pub fn with_domain(mut self, domain: String) -> Self {
         self.inner.domain = domain;
         self
     }
 
-    /// Pass new compression to builder. Default is Compression::Zstd
-    pub fn with_compression(mut self, compression: Compression) -> Self {
+    /// Pass new compression to builder. Default is `Compression::Zstd`
+    #[must_use]
+    pub const fn with_compression(mut self, compression: Compression) -> Self {
         self.inner.encoding = compression;
         self
     }
 
-    /// Pass new encoding to builder. Default is Encoding::Msgpack
-    pub fn with_encoding(mut self, encoding: Encoding) -> Self {
+    /// Pass new encoding to builder. Default is `Encoding::Msgpack`
+    #[must_use]
+    pub const fn with_encoding(mut self, encoding: Encoding) -> Self {
         self.inner.format = encoding;
         self
     }
@@ -75,6 +80,6 @@ impl VkApiBuilder {
 
 impl From<VkApiBuilder> for VkApi {
     fn from(builder: VkApiBuilder) -> Self {
-        VkApi::from_inner(builder.inner)
+        Self::from_inner(builder.inner)
     }
 }

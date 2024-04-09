@@ -1,0 +1,49 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build and test
+      run: |
+        function performTasks() {
+          cargo build
+          cargo check
+          cargo clippy -- \
+            -Wclippy::pedantic \
+            -Wclippy::nursery \
+            -Wclippy::create_dir \
+            -Wclippy::empty_structs_with_brackets \
+            -Wclippy::filetype_is_file \
+            -Wclippy::get_unwrap \
+            -Wclippy::indexing_slicing \
+            -Wclippy::impl_trait_in_params \
+            -Wclippy::lossy_float_literal \
+            -Wclippy::str_to_string \
+            -Wclippy::string_add \
+            -Wclippy::string_to_string \
+            -Wclippy::suspicious_xor_used_as_pow \
+            -Wclippy::unneeded_field_pattern \
+            -Wclippy::unnecessary_self_imports \
+            -Wclippy::unseparated_literal_suffix \
+            -Wclippy::todo
+        }
+
+        performTasks
+
+        for example in examples/*; do
+            pushd $example
+                performTasks
+            popd
+        done

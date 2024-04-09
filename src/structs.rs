@@ -60,7 +60,7 @@ pub struct Version(pub u8, pub u16);
 
 impl Default for Version {
     fn default() -> Self {
-        Version(5, 131)
+        Self(5, 131)
     }
 }
 
@@ -85,19 +85,19 @@ mod tests {
 
     #[test]
     fn serialize_ints() {
-        assert_eq!(List(vec![1, 2, 3]).to_string(), "1,2,3".to_string());
+        assert_eq!(List(vec![1, 2, 3]).to_string(), "1,2,3".to_owned());
     }
 
     #[test]
     fn serialize_strs() {
         assert_eq!(
             List(vec!["id", "sex", "age"]).to_string(),
-            "id,sex,age".to_string()
+            "id,sex,age".to_owned()
         );
     }
 
     #[test]
     fn serialize_version() {
-        assert_eq!(Version(5, 131).to_string(), "5.131".to_string())
+        assert_eq!(Version(5, 131).to_string(), "5.131".to_owned());
     }
 }
