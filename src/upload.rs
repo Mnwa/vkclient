@@ -58,15 +58,16 @@ impl VkUploader {
             .multipart(form);
 
         let mut response = req.send().await.map_err(VkApiError::Request)?;
-        let headers = response.headers();
-
-        let content_encoding = headers.get(CONTENT_ENCODING).cloned();
         let conent_length = response.content_length();
 
         let mut body = BytesMut::with_capacity(conent_length.unwrap_or_default() as usize);
         while let Some(buf) = response.chunk().await.map_err(VkApiError::Request)? {
             body.put(buf)
         }
+
+        let headers = response.headers();
+
+        let content_encoding = headers.get(CONTENT_ENCODING);
 
         let mut body = uncompress(content_encoding, body.reader())?;
 
