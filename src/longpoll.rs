@@ -1,6 +1,6 @@
 use crate::inner::{create_client, decode, uncompress};
 use crate::{VkApiError, VkApiResult};
-use bytes::Buf;
+use bytes::{Buf, BufMut, BytesMut};
 use cfg_if::cfg_if;
 use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
 use reqwest::Client;
@@ -138,13 +138,17 @@ impl VkLongPoll {
             .header(ACCEPT_ENCODING, encoding)
             .header(ACCEPT, serialisation);
 
-        let response = request.send().await.map_err(VkApiError::Request)?;
+        let mut response = request.send().await.map_err(VkApiError::Request)?;
         let headers = response.headers();
 
         let content_type = headers.get(CONTENT_TYPE).cloned();
         let content_encoding = headers.get(CONTENT_ENCODING).cloned();
+        let conent_length = response.content_length();
 
-        let body = response.bytes().await.map_err(VkApiError::Request)?;
+        let mut body = BytesMut::with_capacity(conent_length.unwrap_or_default() as usize);
+        while let Some(buf) = response.chunk().await.map_err(VkApiError::Request)? {
+            body.put(buf)
+        }
 
         let resp = decode::<LongPollResponse<I>, _>(
             &content_type,
