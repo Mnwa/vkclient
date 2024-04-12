@@ -90,5 +90,6 @@ struct UsersGetResponse {
     id: i64,
     first_name: String,
     last_name: String,
-    sex: usize,
+    #[serde(default)]
+    sex: Option<usize>,
 }
