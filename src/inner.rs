@@ -80,7 +80,7 @@ where
 }
 
 pub fn uncompress<B: Read + 'static>(
-    encode: Option<HeaderValue>,
+    encode: Option<&HeaderValue>,
     body: B,
 ) -> VkApiResult<CompressReader<'static, B>> {
     match encode {
@@ -97,7 +97,7 @@ pub fn uncompress<B: Read + 'static>(
 }
 
 pub fn decode<T: DeserializeOwned, B: Read>(
-    format: &Option<HeaderValue>,
+    format: Option<&HeaderValue>,
     body: B,
 ) -> VkApiResult<T> {
     match format.as_ref().and_then(|f| f.to_str().ok()) {

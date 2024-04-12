@@ -139,10 +139,6 @@ impl VkLongPoll {
             .header(ACCEPT, serialisation);
 
         let mut response = request.send().await.map_err(VkApiError::Request)?;
-        let headers = response.headers();
-
-        let content_type = headers.get(CONTENT_TYPE).cloned();
-        let content_encoding = headers.get(CONTENT_ENCODING).cloned();
         let conent_length = response.content_length();
 
         let mut body = BytesMut::with_capacity(conent_length.unwrap_or_default() as usize);
@@ -150,8 +146,13 @@ impl VkLongPoll {
             body.put(buf)
         }
 
+        let headers = response.headers();
+
+        let content_type = headers.get(CONTENT_TYPE);
+        let content_encoding = headers.get(CONTENT_ENCODING);
+
         let resp = decode::<LongPollResponse<I>, _>(
-            &content_type,
+            content_type,
             uncompress(content_encoding, body.reader())?,
         )?;
 
