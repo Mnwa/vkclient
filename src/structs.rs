@@ -1,4 +1,5 @@
 use serde::{Serialize, Serializer};
+use std::fmt::Display;
 
 /// Vk API List helper
 /// Serialize any iterable struct with `ToString` items to string separated by comma.
@@ -12,7 +13,7 @@ pub struct List<I>(pub I);
 
 impl<Item, Iter> Serialize for List<Iter>
 where
-    Item: ToString,
+    Item: Display,
     for<'a> &'a Iter: IntoIterator<Item = &'a Item>,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -23,24 +24,23 @@ where
     }
 }
 
-impl<Item, Iter> ToString for List<Iter>
+impl<Item, Iter> Display for List<Iter>
 where
-    Item: ToString,
+    Item: Display,
     for<'a> &'a Iter: IntoIterator<Item = &'a Item>,
 {
-    fn to_string(&self) -> String {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut iter = self.0.into_iter();
 
-        let mut result = match iter.next() {
-            None => return String::new(),
-            Some(i) => i.to_string(),
+        match iter.next() {
+            None => return Ok(()),
+            Some(i) => write!(f, "{}", i)?,
         };
 
         for i in iter {
-            result.push(',');
-            result.push_str(&i.to_string());
+            write!(f, ",{}", i)?;
         }
-        result
+        Ok(())
     }
 }
 
@@ -73,9 +73,9 @@ impl Serialize for Version {
     }
 }
 
-impl ToString for Version {
-    fn to_string(&self) -> String {
-        format!("{}.{}", self.0, self.1)
+impl Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}", self.0, self.1)
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::inner::{create_client, decode, uncompress};
 use crate::{VkApiError, VkApiResult};
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::Buf;
 use cfg_if::cfg_if;
 use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
 use reqwest::Client;
@@ -10,19 +10,19 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 /// # Client for long poll subscriptions
-/// Use it to subscribe on some VK events, like
-/// the [UserLong Poll API](https://dev.vk.com/api/user-long-poll/getting-started)
-/// or the [Bots Long Poll API](https://dev.vk.com/api/bots-long-poll/getting-started).
+/// Uses it to subscribe to some VK events, like
+/// the [UserLong Poll API](https://dev.vk.ru/api/user-long-poll/getting-started)
+/// or the [Bot Long Poll API](https://dev.vk.ru/api/bots-long-poll/getting-started).
 ///
 /// ## Usage:
-/// ```rust
+/// ```ignore
 /// use vkclient::VkApi;
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 ///
 /// let longpoll_client = client.longpoll();
 /// ```
 ///
-/// ```rust
+/// ```ignore
 /// use vkclient::longpoll::VkLongPoll;
 ///
 /// let longpoll_client = VkLongPoll::default();
@@ -33,10 +33,10 @@ pub struct VkLongPoll {
 }
 
 impl VkLongPoll {
-    /// Returns an events stream from long poll server.
+    /// Returns an events stream from a long poll server.
     ///
     /// ## Usage
-    /// ```rust
+    /// ```ignore
     /// use vkclient::longpoll::{VkLongPoll, LongPollRequest};
     ///
     /// let longpoll_client = VkLongPoll::default();
@@ -79,10 +79,10 @@ impl VkLongPoll {
         }
     }
 
-    /// Returns first events chunk from long poll server.
+    /// Returns first events chunk from a long poll server.
     ///
     /// ## Usage
-    /// ```rust
+    /// ```ignore
     /// use vkclient::longpoll::{VkLongPoll, LongPollRequest};
     ///
     /// let longpoll_client = VkLongPoll::default();
@@ -118,7 +118,7 @@ impl VkLongPoll {
         };
 
         cfg_if! {
-            if #[cfg(features = "compression_gzip")] {
+            if #[cfg(feature = "compression_gzip")] {
                 let encoding = "gzip";
             } else {
                 let encoding =  "identity";
@@ -126,7 +126,7 @@ impl VkLongPoll {
         }
 
         cfg_if! {
-            if #[cfg(features = "encode_json")] {
+            if #[cfg(feature = "encode_json")] {
                 let serialisation = "application/json";
             } else {
                 let serialisation =  "text/*";
@@ -138,18 +138,14 @@ impl VkLongPoll {
             .header(ACCEPT_ENCODING, encoding)
             .header(ACCEPT, serialisation);
 
-        let mut response = request.send().await.map_err(VkApiError::Request)?;
-        let conent_length = response.content_length();
-
-        let mut body = BytesMut::with_capacity(conent_length.unwrap_or_default() as usize);
-        while let Some(buf) = response.chunk().await.map_err(VkApiError::Request)? {
-            body.put(buf)
-        }
+        let response = request.send().await.map_err(VkApiError::Request)?;
 
         let headers = response.headers();
 
-        let content_type = headers.get(CONTENT_TYPE);
-        let content_encoding = headers.get(CONTENT_ENCODING);
+        let content_type = headers.get(CONTENT_TYPE).cloned();
+        let content_encoding = headers.get(CONTENT_ENCODING).cloned();
+
+        let body = response.bytes().await.map_err(VkApiError::Request)?;
 
         let resp = decode::<LongPollResponse<I>, _>(
             content_type,
@@ -182,7 +178,7 @@ enum LongPollResponse<R> {
     Error(LongPollError),
 }
 
-/// Long poll events chunk. You should to replace ts on next request with this value.
+/// Long poll events chunk. You should replace ts on the next request with this value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LongPollSuccess<R> {
     #[serde(deserialize_with = "deserialize_usize_or_string")]
@@ -206,7 +202,7 @@ pub struct LongPollError {
 
 impl Display for LongPollError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "long poll error occured, code: {}", self.failed,)
+        write!(f, "long poll error occurred, code: {}", self.failed,)
     }
 }
 

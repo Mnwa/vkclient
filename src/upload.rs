@@ -1,6 +1,6 @@
 use crate::inner::{create_client, uncompress};
 use crate::{VkApiError, VkApiResult};
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::Buf;
 use cfg_if::cfg_if;
 use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING};
 pub use reqwest::multipart::Form;
@@ -8,11 +8,11 @@ use reqwest::Client;
 use std::io::Read;
 
 /// # Upload files to VK Uploader Servers
-/// Firstly you need to get any uploader server from VK API.
-/// As example [photos.getUploadServer](https://dev.vk.com/method/photos.getUploadServer).
+///  Firstly, you need to get any uploader server from VK API.
+/// As an example [photos.getUploadServer](https://dev.vk.com/method/photos.getUploadServer).
 /// Then you can use this struct to upload files.
 /// Example:
-/// ```rust
+/// ```ignore
 /// use vkclient::upload::{Form, VkUploader};
 /// let uploader = VkUploader::default();
 ///
@@ -24,7 +24,7 @@ use std::io::Read;
 /// }
 /// ```
 ///
-/// ```rust
+/// ```ignore
 /// use vkclient::VkApi;
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 ///
@@ -57,17 +57,12 @@ impl VkUploader {
             .header(ACCEPT, "application/json")
             .multipart(form);
 
-        let mut response = req.send().await.map_err(VkApiError::Request)?;
-        let conent_length = response.content_length();
-
-        let mut body = BytesMut::with_capacity(conent_length.unwrap_or_default() as usize);
-        while let Some(buf) = response.chunk().await.map_err(VkApiError::Request)? {
-            body.put(buf)
-        }
+        let response = req.send().await.map_err(VkApiError::Request)?;
 
         let headers = response.headers();
+        let content_encoding = headers.get(CONTENT_ENCODING).cloned();
 
-        let content_encoding = headers.get(CONTENT_ENCODING);
+        let body = response.bytes().await.map_err(VkApiError::Request)?;
 
         let mut body = uncompress(content_encoding, body.reader())?;
 

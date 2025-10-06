@@ -1,7 +1,7 @@
 [package]
 name = "vkclient"
-version = "5.1.2"
-edition = "2021"
+version = "6.0.0"
+edition = "2024"
 description = "Vk Api client implementation"
 documentation = "https://docs.rs/vkclient"
 readme = "Readme.md"

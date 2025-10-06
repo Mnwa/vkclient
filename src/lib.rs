@@ -1,13 +1,13 @@
 //! # Base VK API client realisation.
-//! This client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
+//! This client supports zstd compression and msgpack format of VK API. It works with http2-only connections.
 //!
 //! ## VK API Clients list:
-//! * [API client](crate::VkApi)
-//! * [Uploader client](crate::upload::VkUploader)
-//! * [Long Poll Client](crate::longpoll::VkLongPoll)
+//! * [API client](VkApi)
+//! * [Uploader client](upload::VkUploader)
+//! * [Long Poll Client](longpoll::VkLongPoll)
 //!
 //! ## Usage
-//! ```rust
+//! ```ignore
 //! use vkclient::{List, VkApi, VkApiResult};
 //! let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 //!

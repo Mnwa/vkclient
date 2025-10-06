@@ -10,21 +10,21 @@ pub struct VkApiBuilder {
 }
 
 impl VkApiBuilder {
-    /// Creates the builder from access key with default values.
+    /// Creates the builder from an access key with default values.
     pub fn new(access_token: String) -> Self {
         cfg_if::cfg_if! {
-            if #[cfg(features = "compression_zstd")] {
+            if #[cfg(feature = "compression_zstd")] {
                 let encoding = Compression::Zstd;
-            } else if #[cfg(features = "compression_gzip")] {
+            } else if #[cfg(feature = "compression_gzip")] {
                 let encoding = Compression::Gzip;
             } else {
                 let encoding = Compression::None;
             }
         }
         cfg_if::cfg_if! {
-            if #[cfg(features = "encode_msgpack")] {
+            if #[cfg(feature = "encode_msgpack")] {
                 let format = Encoding::Msgpack;
-            } else if #[cfg(features = "encode_json")] {
+            } else if #[cfg(feature = "encode_json")] {
                 let format = Encoding::Json;
             } else {
                 let format = Encoding::None;

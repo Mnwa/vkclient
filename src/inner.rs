@@ -30,7 +30,7 @@ where
     #[cfg(feature = "compression_zstd")]
     Zstd(zstd::Decoder<'a, BufReader<R>>),
     #[cfg(feature = "compression_gzip")]
-    Gzip(Box<flate2::read::GzDecoder<BufReader<R>>>),
+    Gzip(flate2::read::GzDecoder<R>),
     Skip(BufReader<R>),
 }
 
@@ -46,11 +46,11 @@ where
         }
     }
 
-    fn read_exact(&mut self, buf: &mut [u8]) -> std::io::Result<()> {
+    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
         match self {
-            CompressReader::Zstd(reader) => reader.read_exact(buf),
-            CompressReader::Gzip(reader) => reader.read_exact(buf),
-            CompressReader::Skip(reader) => reader.read_exact(buf),
+            CompressReader::Zstd(reader) => reader.read_vectored(bufs),
+            CompressReader::Gzip(reader) => reader.read_vectored(bufs),
+            CompressReader::Skip(reader) => reader.read_vectored(bufs),
         }
     }
 
@@ -70,17 +70,17 @@ where
         }
     }
 
-    fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+    fn read_exact(&mut self, buf: &mut [u8]) -> std::io::Result<()> {
         match self {
-            CompressReader::Zstd(reader) => reader.read_vectored(bufs),
-            CompressReader::Gzip(reader) => reader.read_vectored(bufs),
-            CompressReader::Skip(reader) => reader.read_vectored(bufs),
+            CompressReader::Zstd(reader) => reader.read_exact(buf),
+            CompressReader::Gzip(reader) => reader.read_exact(buf),
+            CompressReader::Skip(reader) => reader.read_exact(buf),
         }
     }
 }
 
 pub fn uncompress<B: Read + 'static>(
-    encode: Option<&HeaderValue>,
+    encode: Option<HeaderValue>,
     body: B,
 ) -> VkApiResult<CompressReader<'static, B>> {
     match encode {
@@ -89,15 +89,13 @@ pub fn uncompress<B: Read + 'static>(
             zstd::Decoder::new(body).map_err(VkApiError::IO)?,
         )),
         #[cfg(feature = "compression_gzip")]
-        Some(v) if v == "gzip" => Ok(CompressReader::Gzip(Box::new(
-            flate2::read::GzDecoder::new(BufReader::new(body)),
-        ))),
+        Some(v) if v == "gzip" => Ok(CompressReader::Gzip(flate2::read::GzDecoder::new(body))),
         _ => Ok(CompressReader::Skip(BufReader::new(body))),
     }
 }
 
 pub fn decode<T: DeserializeOwned, B: Read>(
-    format: Option<&HeaderValue>,
+    format: Option<HeaderValue>,
     body: B,
 ) -> VkApiResult<T> {
     match format.as_ref().and_then(|f| f.to_str().ok()) {

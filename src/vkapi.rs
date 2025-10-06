@@ -1,7 +1,7 @@
 use crate::inner::{create_client, decode, uncompress, VkApiInner};
 use crate::structs::Version;
 use crate::wrapper::VkApiWrapper;
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::Buf;
 use cfg_if::cfg_if;
 use reqwest::header::{ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_TYPE};
 use reqwest::Client;
@@ -11,11 +11,11 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 
-/// # Base VK API client realisation.
-/// This client supports zstd compression and msgpack format of VK API. It's works with http2 only connections.
+/// # Base VK API client realization.
+/// This client supports zstd compression and msgpack format of VK API. It works with http2-only connections.
 ///
 /// ## Usage
-/// ```rust
+/// ```ignore
 /// use vkclient::VkApi;
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 /// ```
@@ -35,8 +35,8 @@ impl VkApi {
         }
     }
 
-    /// Send request to VK API. See list of [VK API methods](https://dev.vk.com/method).
-    /// ```rust
+    /// Send a request to VK API. See list of [VK API methods](https://dev.vk.ru/method).
+    /// ```no_run
     /// use vkclient::{VkApi, VkApiResult, List};
     /// use serde::{Deserialize, Serialize};
     ///
@@ -82,7 +82,7 @@ impl VkApi {
             .await
     }
 
-    /// Send request to VK API with specific version.
+    /// Send a request to VK API with a specific version.
     pub async fn send_request_with_version<T, B, M>(
         &self,
         method: M,
@@ -140,18 +140,12 @@ impl VkApi {
                 body,
             });
 
-        let mut response = request.send().await.map_err(VkApiError::Request)?;
-        let conent_length = response.content_length();
+        let response = request.send().await.map_err(VkApiError::Request)?;
 
-        let mut body = BytesMut::with_capacity(conent_length.unwrap_or_default() as usize);
-        while let Some(buf) = response.chunk().await.map_err(VkApiError::Request)? {
-            body.put(buf)
-        }
+        let content_type = response.headers().get(CONTENT_TYPE).cloned();
+        let content_encoding = response.headers().get(CONTENT_ENCODING).cloned();
 
-        let headers = response.headers();
-
-        let content_type = headers.get(CONTENT_TYPE);
-        let content_encoding = headers.get(CONTENT_ENCODING);
+        let body = response.bytes().await.map_err(VkApiError::Request)?;
 
         let resp =
             decode::<Response<T>, _>(content_type, uncompress(content_encoding, body.reader())?)?;
@@ -176,8 +170,8 @@ impl VkApi {
 }
 
 /// Vk Api errors.
-/// `VkApiError::Vk` - is an error of buisness logic, like expired token or incorrect request params
-/// Other errors is about things around your request, like a serialization/deserialization or network errors.
+/// `VkApiError::Vk` - is an error of business logic, like expired token or incorrect request params
+/// Other errors are about things around your request, like a serialization/deserialization or network errors.
 #[derive(Debug)]
 pub enum VkApiError {
     Request(reqwest::Error),

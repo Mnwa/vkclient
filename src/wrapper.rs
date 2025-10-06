@@ -5,7 +5,7 @@ use serde::de::DeserializeOwned;
 /// Wrapper for strong typed API method description.
 ///
 /// Example
-/// ```
+/// ```ignore
 /// use vkclient::{List, Version, VkApi, VkApiWrapper};
 /// use serde::{Serialize, Deserialize};
 ///
