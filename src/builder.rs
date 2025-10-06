@@ -35,7 +35,7 @@ impl VkApiBuilder {
             inner: VkApiInner {
                 access_token,
                 version: Version::default(),
-                domain: "api.vk.com".to_owned(),
+                domain: "api.vk.ru".to_owned(),
                 format,
                 encoding,
             },
@@ -56,21 +56,21 @@ impl VkApiBuilder {
         self
     }
 
-    /// Pass new API domain to builder. Default is api.vk.com
+    /// Pass new API domain to builder. The default is api.vk.ru
     #[must_use]
     pub fn with_domain(mut self, domain: String) -> Self {
         self.inner.domain = domain;
         self
     }
 
-    /// Pass new compression to builder. Default is `Compression::Zstd`
+    /// Pass new compression to builder. The default is `Compression::Zstd`
     #[must_use]
     pub const fn with_compression(mut self, compression: Compression) -> Self {
         self.inner.encoding = compression;
         self
     }
 
-    /// Pass new encoding to builder. Default is `Encoding::Msgpack`
+    /// Pass new encoding to the builder. The default is `Encoding::Msgpack`
     #[must_use]
     pub const fn with_encoding(mut self, encoding: Encoding) -> Self {
         self.inner.format = encoding;
