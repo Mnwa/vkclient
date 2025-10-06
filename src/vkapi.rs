@@ -15,8 +15,9 @@ use std::sync::Arc;
 /// This client supports zstd compression and msgpack format of VK API. It works with http2-only connections.
 ///
 /// ## Usage
-/// ```ignore
+/// ```rust,
 /// use vkclient::VkApi;
+/// let access_token = String::new();
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 /// ```
 #[derive(Debug, Clone)]
@@ -36,7 +37,7 @@ impl VkApi {
     }
 
     /// Send a request to VK API. See list of [VK API methods](https://dev.vk.ru/method).
-    /// ```no_run
+    /// ```rust
     /// use vkclient::{VkApi, VkApiResult, List};
     /// use serde::{Deserialize, Serialize};
     ///

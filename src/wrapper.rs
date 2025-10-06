@@ -5,18 +5,9 @@ use serde::de::DeserializeOwned;
 /// Wrapper for strong typed API method description.
 ///
 /// Example
-/// ```ignore
+/// ```rust
 /// use vkclient::{List, Version, VkApi, VkApiWrapper};
 /// use serde::{Serialize, Deserialize};
-///
-/// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
-///
-/// async {
-///     let users = client.send_request_with_wrapper(UsersGetRequest {
-///         user_ids: List(vec![1,2]),
-///         fields: List(vec!["id", "sex"]),
-///     }).await.expect("vk api error");
-/// }
 ///
 /// #[derive(Serialize, Debug)]
 /// struct UsersGetRequest<'a> {
@@ -32,7 +23,7 @@ use serde::de::DeserializeOwned;
 ///     sex: usize,
 /// }
 ///
-/// impl <'a>VkApiWrapper for UsersGetRequest<'a> {
+/// impl<'a> VkApiWrapper for UsersGetRequest<'a> {
 ///     type Response = UsersGetResponse;
 ///
 ///     fn get_method_name() -> &'static str {
@@ -42,6 +33,22 @@ use serde::de::DeserializeOwned;
 ///     fn get_version() -> Version {
 ///         Version(5, 131)
 ///     }
+/// }
+///
+/// fn demo() {
+///     let access_token = String::new();
+///     let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
+///
+///     async {
+///         let users: UsersGetResponse = client
+///             .send_request_with_wrapper(UsersGetRequest {
+///                 user_ids: List(vec![1, 2]),
+///                 fields: List(vec!["id", "sex"]),
+///             })
+///             .await
+///             .expect("vk api error");
+///         let _ = users;
+///     };
 /// }
 /// ```
 pub trait VkApiWrapper {

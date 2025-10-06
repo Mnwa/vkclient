@@ -7,12 +7,18 @@
 //! * [Long Poll Client](longpoll::VkLongPoll)
 //!
 //! ## Usage
-//! ```ignore
+//! ```rust
 //! use vkclient::{List, VkApi, VkApiResult};
-//! let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
+//! use serde::{Serialize, Deserialize};
 //!
-//! async {
-//!     let users = get_users_info(&client).await.unwrap();
+//! fn demo() {
+//!     let access_token = String::new();
+//!     let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
+//!
+//!     async {
+//!         let users = get_users_info(&client).await.unwrap();
+//!         let _ = users;
+//!     };
 //! }
 //!
 //! async fn get_users_info(client: &VkApi) -> VkApiResult<Vec<UsersGetResponse>> {

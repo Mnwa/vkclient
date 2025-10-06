@@ -15,14 +15,15 @@ use std::fmt::{Display, Formatter};
 /// or the [Bot Long Poll API](https://dev.vk.ru/api/bots-long-poll/getting-started).
 ///
 /// ## Usage:
-/// ```ignore
+/// ```rust
 /// use vkclient::VkApi;
+/// let access_token = String::new();
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 ///
 /// let longpoll_client = client.longpoll();
 /// ```
 ///
-/// ```ignore
+/// ```rust
 /// use vkclient::longpoll::VkLongPoll;
 ///
 /// let longpoll_client = VkLongPoll::default();
@@ -36,20 +37,24 @@ impl VkLongPoll {
     /// Returns an events stream from a long poll server.
     ///
     /// ## Usage
-    /// ```ignore
+    /// ```rust
     /// use vkclient::longpoll::{VkLongPoll, LongPollRequest};
+    /// use futures_util::StreamExt;
     ///
     /// let longpoll_client = VkLongPoll::default();
     ///
-    /// longpoll_client.subscribe(LongPollRequest {
+    /// let key = String::new();
+    /// let server = String::from("example.com/longpoll");
+    /// let ts = String::from("0");
+    ///
+    /// let stream = longpoll_client.subscribe::<(), serde_json::Value>(LongPollRequest {
     ///         key,
     ///         server,
     ///         ts,
     ///         wait: 25,
     ///         additional_params: (),
-    ///     })
-    ///     .take(1)
-    ///     .for_each(|r| async move { println!("{:?}", r) });
+    ///     });
+    /// let _ = stream.take(1);
     /// ```
     #[cfg(feature = "longpoll_stream")]
     pub fn subscribe<T: Serialize + Clone + Send, I: DeserializeOwned>(
@@ -82,12 +87,16 @@ impl VkLongPoll {
     /// Returns first events chunk from a long poll server.
     ///
     /// ## Usage
-    /// ```ignore
+    /// ```rust
     /// use vkclient::longpoll::{VkLongPoll, LongPollRequest};
     ///
     /// let longpoll_client = VkLongPoll::default();
     ///
-    /// longpoll_client.subscribe_once(LongPollRequest {
+    /// let key = String::new();
+    /// let server = String::from("example.com/longpoll");
+    /// let ts = String::from("0");
+    ///
+    /// let _future = longpoll_client.subscribe_once::<(), serde_json::Value>(LongPollRequest {
     ///         key,
     ///         server,
     ///         ts,

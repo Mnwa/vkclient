@@ -12,20 +12,22 @@ use std::io::Read;
 /// As an example [photos.getUploadServer](https://dev.vk.com/method/photos.getUploadServer).
 /// Then you can use this struct to upload files.
 /// Example:
-/// ```ignore
+/// ```rust
 /// use vkclient::upload::{Form, VkUploader};
 /// let uploader = VkUploader::default();
 ///
-/// let url = "...";
+/// let url: &str = "https://example.com/upload";
 /// let form = Form::new();
 ///
 /// async {
 ///     let response: String = uploader.upload(url, form).await.expect("uploading error");
-/// }
+///     let _ = response;
+/// };
 /// ```
 ///
-/// ```ignore
+/// ```rust
 /// use vkclient::VkApi;
+/// let access_token = String::new();
 /// let client: VkApi = vkclient::VkApiBuilder::new(access_token).into();
 ///
 /// let uploader = client.uploader();
